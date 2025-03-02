@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Results - BTC Fee Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Optimal Transaction Times</h1>
+    
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Fee Rate</th>
+                <th>Total Fee</th>
+                <th>Fee Percentage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in results %}
+            <tr>
+                <td>{{ result.time }}</td>
+                <td>{{ result.fee_rate }} sat/byte</td>
+                <td>{{ result.total_fee }} BTC</td>
+                <td>{{ result.fee_percent }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
