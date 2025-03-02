@@ -4,7 +4,7 @@ scikit-learn==1.0.2
 matplotlib==3.5.3
 requests==2.31.0
 pip==24.0
-
+requests== 2.31.0
 # GUI requirements
 customtkinter==5.2.0  # Modern Tkinter alternative (optional)
 
