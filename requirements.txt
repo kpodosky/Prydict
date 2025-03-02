@@ -14,4 +14,4 @@ sqlalchemy==2.0.23
 
 # Web server (for potential Flask/Django deployment)
 gunicorn==21.2.0
-# flask==2.2.5  #web app
+flask==2.2.5  #web app
