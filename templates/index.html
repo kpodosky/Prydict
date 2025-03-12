@@ -2,19 +2,165 @@
 <html>
 <head>
     <title>BTC Fee Predictor</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            color: #ffffff;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .brand {
+            color: #f7931a;
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        h1 {
+            color: #ffffff;
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            animation: fadeIn 1s ease-in;
+        }
+
+        form {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.8s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            color: #f0f0f0;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #f7931a;
+            box-shadow: 0 0 15px rgba(247, 147, 26, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f7931a, #e88a18);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #e88a18, #f7931a);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 147, 26, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        footer {
+            margin-top: 2rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            text-align: center;
+            position: fixed;
+            bottom: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 5px #f7931a, 0 0 10px #f7931a, 0 0 15px #e88a18;
+            }
+            to {
+                text-shadow: 0 0 10px #f7931a, 0 0 20px #f7931a, 0 0 30px #e88a18;
+            }
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23f7931a'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+        }
+    </style>
 </head>
 <body>
+    <div class="brand">Prydict</div>
     <h1>Bitcoin Fee Optimizer</h1>
     <form method="POST">
-        <label>BTC Amount: <input type="number" step="0.00000001" name="btc_amount" required></label>
-        <label>Transaction Size:
+        <label>
+            BTC Amount:
+            <input type="number" step="0.00000001" name="btc_amount" required 
+                   placeholder="Enter BTC amount">
+        </label>
+        <label>
+            Transaction Size:
             <select name="tx_size">
                 <option value="simple">Simple (250 bytes)</option>
                 <option value="average">Average (500 bytes)</option>
                 <option value="complex">Complex (1000 bytes)</option>
             </select>
         </label>
-        <button type="submit">Calculate</button>
+        <button type="submit">Calculate Fees</button>
     </form>
+    <footer>
+        Powered by Kilanko Paul
+    </footer>
 </body>
 </html>
