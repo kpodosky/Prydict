@@ -65,7 +65,85 @@ class FeePredictor:
             logger.error(f"Error in preprocessing: {e}")
             raise
 
-    # ... rest of the FeePredictor class and route handlers remain the same ...
+    def train_model(self):
+        """Train the prediction model"""
+        if self.data.empty:
+            raise ValueError("No data available for training")
+            
+        X = self.data[self.features]
+        y = self.data['fee_per_byte']
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+        self.model.fit(X_train, y_train)
+        logger.debug("Model training completed")
+        return True
+
+    def predict_fees(self, start_time, hours=168, interval=1):
+        """Predict fees for future timestamps"""
+        predictions = []
+        for hour in range(0, hours, interval):
+            timestamp = start_time + timedelta(hours=hour)
+            features = {
+                'hour': timestamp.hour,
+                'day_of_week': timestamp.weekday(),
+                'day_of_month': timestamp.day,
+                'month': timestamp.month,
+                'rolling_avg_24h': self.data['fee_per_byte'].iloc[-24:].mean()
+            }
+            df = pd.DataFrame([features])
+            fee = self.model.predict(df)[0]
+            predictions.append((timestamp, fee))
+        return sorted(predictions, key=lambda x: x[1])[:5]
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        try:
+            btc_amount = float(request.form['btc_amount'])
+            if btc_amount <= 0:
+                flash('BTC amount must be positive')
+                return render_template('index.html')
+                
+            tx_size = request.form['tx_size']
+            
+            predictor = FeePredictor()
+            logger.info("Fetching historical data...")
+            if not predictor.fetch_historical_data(days=60):
+                flash('Failed to fetch historical data')
+                return render_template('index.html')
+            
+            logger.info("Preprocessing data...")
+            predictor.preprocess_data()
+            
+            logger.info("Training model...")
+            predictor.train_model()
+            
+            logger.info("Predicting fees...")
+            start_time = datetime.now()
+            best_times = predictor.predict_fees(start_time)
+            
+            size_mapping = {"simple": 250, "average": 500, "complex": 1000}
+            tx_size_bytes = size_mapping[tx_size]
+            
+            results = []
+            for time, fee_rate in best_times:
+                total_fee_btc = (fee_rate * tx_size_bytes) / 1e8
+                fee_percentage = (total_fee_btc / btc_amount) * 100 if btc_amount > 0 else 0
+                results.append({
+                    'time': time.strftime('%Y-%m-%d %H:%M'),
+                    'fee_rate': f"{fee_rate:.1f}",
+                    'total_fee': f"{total_fee_btc:.8f}",
+                    'fee_percent': f"{fee_percentage:.4f}"
+                })
+            
+            logger.info(f"Generated {len(results)} predictions")
+            return render_template('results.html', results=results)
+            
+        except Exception as e:
+            logger.error(f"Error processing request: {str(e)}")
+            flash(f"An error occurred: {str(e)}")
+            return render_template('index.html')
+    
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
