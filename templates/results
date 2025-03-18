@@ -61,23 +61,52 @@
         .back-button:hover {
             transform: translateY(-2px);
         }
+        .results-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+        
+        .prediction-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 0;
+        }
+        
+        .prediction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .back-button {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background: #f7931a;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
     </style>
 </head>
 <body>
     <div class="brand">Prydict</div>
-    <h1>Predicted Fee Results</h1>
+    <h1>Fee Prediction Results</h1>
     
     <div class="results-container">
         {% for result in results %}
-        <div class="result-item">
-            <h3>Prediction for {{ result.time }}</h3>
-            <p>Fee Rate: {{ result.fee_rate }} sat/byte</p>
-            <p>Total Fee: {{ result.total_fee }} BTC</p>
-            <p>Fee Percentage: {{ result.fee_percent }}%</p>
-        </div>
+            <div class="prediction-item">
+                <h3>{{ result.time }}</h3>
+                <p>Fee Rate: {{ result.fee_rate }} sat/byte</p>
+                <p>Total Fee: {{ result.total_fee }} BTC</p>
+                <p>Fee Percentage: {{ result.fee_percent }}%</p>
+            </div>
         {% endfor %}
     </div>
-
-    <a href="{{ url_for('index') }}" class="back-button">Back to Calculator</a>
+    
+    <a href="{{ url_for('index') }}" class="back-button">Make Another Prediction</a>
+    
+    <footer>
+        Powered by Kilanko Paul
+    </footer>
 </body>
 </html>
