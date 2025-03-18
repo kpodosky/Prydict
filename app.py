@@ -4,6 +4,7 @@ import numpy as np
 import requests
 from flask import Flask, render_template, request, flash
 from flask_wtf.csrf import CSRFProtect
+from flask_wtf import FlaskForm
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from datetime import datetime, timedelta
@@ -11,6 +12,35 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 csrf = CSRFProtect(app)
+
+class PredictionForm(FlaskForm):
+    btc_amount = FloatField('BTC Amount', 
+        validators=[
+            DataRequired(message="Please enter a BTC amount"),
+            NumberRange(min=0.00000001, message="Amount must be positive")
+        ])
+    tx_size = SelectField('Transaction Size',
+        choices=[
+            ('simple', 'Simple (250 bytes)'),
+            ('average', 'Average (500 bytes)'),
+            ('complex', 'Complex (1000 bytes)')
+        ],
+        validators=[DataRequired()]
+    )
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    form = PredictionForm()
+    if request.method == 'POST' and form.validate():
+        try:
+            btc_amount = form.btc_amount.data
+            tx_size = form.tx_size.data
+            
+            predictor = FeePredictor()
+            logger.info("Fetching historical data...")
+            if not predictor.fetch_historical_data(days=60):
+                flash('Failed to fetch historical data')
+                return render_template('index.html', form=form)
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -64,7 +94,7 @@ class FeePredictor:
         except Exception as e:
             logger.error(f"Error in preprocessing: {e}")
             raise
-
+        
     def train_model(self):
         """Train the prediction model"""
         if self.data.empty:
@@ -138,12 +168,14 @@ def index():
             logger.info(f"Generated {len(results)} predictions")
             return render_template('results.html', results=results)
             
+            return render_template('results.html', results=results, form=form)
+            
         except Exception as e:
             logger.error(f"Error processing request: {str(e)}")
             flash(f"An error occurred: {str(e)}")
-            return render_template('index.html')
+            return render_template('index.html', form=form)
     
-    return render_template('index.html')
+    return render_template('index.html', form=form)
 
 if __name__ == '__main__':
     app.run(debug=True)
