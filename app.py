@@ -5,11 +5,18 @@ import requests
 from flask import Flask, render_template, request, flash
 from flask_wtf.csrf import CSRFProtect
 from flask_wtf import FlaskForm
+from wtforms import FloatField, SelectField
+from wtforms.validators import DataRequired, NumberRange
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from datetime import datetime, timedelta
 from web3 import Web3
 
+# Configure logging at the start
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+# Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 csrf = CSRFProtect(app)
@@ -28,23 +35,6 @@ class PredictionForm(FlaskForm):
         ],
         validators=[DataRequired()]
     )
-
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    form = PredictionForm()
-    if request.method == 'POST' and form.validate():
-        try:
-            btc_amount = form.btc_amount.data
-            tx_size = form.tx_size.data
-            
-            predictor = FeePredictor()
-            logger.info("Fetching historical data...")
-            if not predictor.fetch_historical_data(days=60):
-                flash('Failed to fetch historical data')
-                return render_template('index.html', form=form)
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
 class FeePredictor:
     def __init__(self):
@@ -127,20 +117,17 @@ class FeePredictor:
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    if request.method == 'POST':
+    form = PredictionForm()
+    if request.method == 'POST' and form.validate():
         try:
-            btc_amount = float(request.form['btc_amount'])
-            if btc_amount <= 0:
-                flash('BTC amount must be positive')
-                return render_template('index.html')
-                
-            tx_size = request.form['tx_size']
+            btc_amount = form.btc_amount.data
+            tx_size = form.tx_size.data
             
             predictor = FeePredictor()
             logger.info("Fetching historical data...")
             if not predictor.fetch_historical_data(days=60):
                 flash('Failed to fetch historical data')
-                return render_template('index.html')
+                return render_template('index.html', form=form)
             
             logger.info("Preprocessing data...")
             predictor.preprocess_data()
@@ -168,8 +155,6 @@ def index():
             
             logger.info(f"Generated {len(results)} predictions")
             return render_template('results.html', results=results)
-            
-            return render_template('results.html', results=results, form=form)
             
         except Exception as e:
             logger.error(f"Error processing request: {str(e)}")
