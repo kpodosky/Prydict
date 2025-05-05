@@ -8,6 +8,7 @@ from flask_wtf import FlaskForm
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from datetime import datetime, timedelta
+from web3 import Web3
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
@@ -176,6 +177,60 @@ def index():
             return render_template('index.html', form=form)
     
     return render_template('index.html', form=form)
+
+@app.route('/predict/eth', methods=['POST'])
+def predict_eth():
+    if request.method == 'POST':
+        try:
+            eth_amount = float(request.form['eth_amount'])
+            gas_limit = int(request.form['gas_limit'])
+            
+            # Connect to Ethereum node (use your preferred provider)
+            w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/YOUR-PROJECT-ID'))
+            
+            # Get current gas price
+            gas_price = w3.eth.gas_price
+            
+            # Calculate fees for different priorities
+            fees = []
+            priorities = [1.0, 1.5, 2.0]  # Regular, Fast, Instant
+            
+            for priority in priorities:
+                fee_wei = int(gas_price * priority) * gas_limit
+                fee_eth = w3.from_wei(fee_wei, 'ether')
+                fee_usd = fee_eth * get_eth_price()  # Implement price fetching
+                
+                fees.append({
+                    'priority': 'Regular' if priority == 1.0 else 'Fast' if priority == 1.5 else 'Instant',
+                    'fee_eth': f"{fee_eth:.6f}",
+                    'fee_usd': f"${fee_usd:.2f}",
+                    'time_estimate': '5 min' if priority == 2.0 else '3 min' if priority == 1.5 else '10 min'
+                })
+            
+            return render_template('results.html', results=fees, crypto_type='ETH')
+            
+        except Exception as e:
+            flash(f"Error: {str(e)}")
+            return render_template('index.html')
+
+@app.route('/predict/usdc', methods=['POST'])
+def predict_usdc():
+    # Similar implementation for USDC
+    pass
+
+@app.route('/predict/usdt', methods=['POST'])
+def predict_usdt():
+    # Similar implementation for USDT
+    pass
+
+def get_eth_price():
+    """Fetch current ETH price in USD"""
+    try:
+        response = requests.get('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd')
+        return response.json()['ethereum']['usd']
+    except Exception as e:
+        logger.error(f"Error fetching ETH price: {e}")
+        return 0
 
 if __name__ == '__main__':
     app.run(debug=True)
