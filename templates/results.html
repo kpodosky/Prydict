@@ -1,0 +1,17 @@
+<!-- Add conditional rendering based on crypto_type -->
+<div class="results-container">
+    <h2>{{ crypto_type }} Fee Predictions</h2>
+    {% for result in results %}
+        <div class="prediction-item">
+            {% if crypto_type == 'BTC' %}
+                <!-- Existing BTC result format -->
+            {% elif crypto_type == 'ETH' %}
+                <h3>{{ result.priority }}</h3>
+                <p>Fee: {{ result.fee_eth }} ETH ({{ result.fee_usd }})</p>
+                <p>Estimated Time: {{ result.time_estimate }}</p>
+            {% else %}
+                <!-- USDC/USDT format -->
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
