@@ -1,17 +1,128 @@
-<!-- Add conditional rendering based on crypto_type -->
-<div class="results-container">
-    <h2>{{ crypto_type }} Fee Predictions</h2>
-    {% for result in results %}
-        <div class="prediction-item">
-            {% if crypto_type == 'BTC' %}
-                <!-- Existing BTC result format -->
-            {% elif crypto_type == 'ETH' %}
-                <h3>{{ result.priority }}</h3>
-                <p>Fee: {{ result.fee_eth }} ETH ({{ result.fee_usd }})</p>
-                <p>Estimated Time: {{ result.time_estimate }}</p>
-            {% else %}
-                <!-- USDC/USDT format -->
-            {% endif %}
-        </div>
-    {% endfor %}
-</div>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fee Prediction Results</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            color: #ffffff;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .brand {
+            color: #f7931a;
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .results-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            width: 100%;
+            max-width: 600px;
+            backdrop-filter: blur(10px);
+        }
+
+        .prediction-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .prediction-item:last-child {
+            border-bottom: none;
+        }
+
+        .prediction-time {
+            color: #f7931a;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .fee-details {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #f7931a, #e88a18);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            margin-top: 2rem;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="brand">Prydict</div>
+    
+    <div class="results-container">
+        <h2>{{ crypto_type if crypto_type else 'BTC' }} Fee Predictions</h2>
+        
+        {% for result in results %}
+            <div class="prediction-item">
+                {% if crypto_type == 'ETH' %}
+                    <h3 class="prediction-time">{{ result.priority }}</h3>
+                    <div class="fee-details">
+                        <p>Gas Fee: {{ result.fee_eth }} ETH</p>
+                        <p>USD Value: {{ result.fee_usd }}</p>
+                        <p>Estimated Time: {{ result.time_estimate }}</p>
+                    </div>
+                {% elif crypto_type in ['USDC', 'USDT'] %}
+                    <h3 class="prediction-time">{{ result.priority }}</h3>
+                    <div class="fee-details">
+                        <p>Gas Fee: {{ result.fee_eth }} ETH</p>
+                        <p>USD Value: {{ result.fee_usd }}</p>
+                        <p>Token Transfer Cost: {{ result.token_fee }}</p>
+                        <p>Estimated Time: {{ result.time_estimate }}</p>
+                    </div>
+                {% else %}
+                    <h3 class="prediction-time">{{ result.time }}</h3>
+                    <div class="fee-details">
+                        <p>Fee Rate: {{ result.fee_rate }} sat/byte</p>
+                        <p>Total Fee: {{ result.total_fee }} BTC</p>
+                        <p>Fee Percentage: {{ result.fee_percent }}%</p>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <a href="{{ url_for('index') }}" class="back-button">Make Another Prediction</a>
+    
+
+
+
+
+
+
+</html></body>    </footer>        Powered by Kilanko Paul    <footer>    <footer>
+        Powered by Kilanko Paul
+    </footer>
+</body>
+</html>
