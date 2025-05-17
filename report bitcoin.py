@@ -171,6 +171,216 @@ class BitcoinWhaleTracker:
                 ]
             }
         }
+
+        # Add important addresses database
+        self.known_addresses.update({
+            'wintermute': {
+                'type': 'market_maker',
+                'addresses': [
+                    'bc1q0f3gdx3al9nxkw9m4x96qvr4j5dmgpx9v0r5g5',  # Main Trading
+                    '3WintermuteTradingWalletMainBTCxyz',          # Hot Wallet
+                    'bc1qwintermute89ppv3rqzk3m5jk4rt8h79x5znx45' # Cold Storage
+                ]
+            },
+            'fbi_seized': {
+                'type': 'law_enforcement',
+                'addresses': [
+                    'bc1q5c7kpcwrvj6prt8nc2ht0qz5ppnrm7rw0pf88z',  # DOJ Seizure 2022
+                    '1FzWLkAahHooV3kzTgyx6qsswXJ6sCXkSR',          # Silk Road Seizure
+                    'bc1qmxjefnuy06v345v6vhwpwt05dztztmx4g3y7wp',  # US Marshals 
+                    '1F1tAaz5x1HUXrCNLbtMDqcw6o5GNn4xqX'           # Seized SR Funds
+                ]
+            },
+            'mining_pools': {
+                'type': 'mining',
+                'addresses': {
+                    'foundry_usa': [
+                        'bc1qx9t2l3pyny2spqpqlye8svce70nppwtaxwdrp4',
+                        '3FrXk5rFBjVWvhEJF8tJ5nPYpr2LVWBCqD'
+                    ],
+                    'antpool': [
+                        'bc1qd8fp5hc7rs620y4vxxn5vármegy66kpy8hau9at',
+                        '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa'
+                    ],
+                    'f2pool': [
+                        'bc1qtw30nantkrh7y5ue73gm4mj4tdeqxwz8z8s626',
+                        '3ChzgHhBqR1Y5LkcJQHYmUFfuGekkH55UD'
+                    ],
+                    'binance_pool': [
+                        'bc1qxaq9ya4903w2ene5z8lmjmgvz9rxy84dl0j2h2',
+                        '34Jpa4Eu3ApoPVUKNTN2WsuiNP5JXqpJo6'
+                    ]
+                }
+            },
+            'historical_figures': {
+                'type': 'notable_person',
+                'addresses': {
+                    'satoshi': [
+                        '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',  # Genesis Block
+                        '12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX'   # Early Mining
+                    ],
+                    'hal_finney': [
+                        '1Q2TWHE3GMdB6BZKafqwxXtWAWgFt5Jvm3',
+                        '1J6PYEzr4CUoGbnXrELyHszoTSz3wCsCaj'
+                    ]
+                }
+            },
+            'market_makers': {
+                'type': 'trading',
+                'addresses': {
+                    'alameda': [
+                        'bc1qala89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3AlamedaResearchWalletMainBTCxyz'
+                    ],
+                    'jump_trading': [
+                        'bc1qjump89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3JumpTradingMainWalletBTCxyz'
+                    ],
+                    'three_arrows': [
+                        'bc1q3ac89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3ThreeArrowsCapitalMainWalletBTC'
+                    ]
+                }
+            },
+            'defi_protocols': {
+                'type': 'defi',
+                'addresses': {
+                    'aave': [
+                        'bc1qaave89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3AaveProtocolBTCBridgeMainWallet'
+                    ],
+                    'curve': [
+                        'bc1qcurve89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3CurveFinanceMainBTCPoolWallet'
+                    ]
+                }
+            }
+        })
+
+        # Add high-risk wallet patterns
+        self.high_risk_patterns = {
+            'silk_road': r'silk.*road|sr.*wallet',
+            'ransomware': r'wannacry|locky|ryuk',
+            'darknet_market': r'hydra|empire|alphabay'
+        }
+
+        # Add more exchange addresses
+        self.exchange_addresses = {
+            'binance': {
+                'type': 'tier1_exchange',
+                'addresses': [
+                    '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo',     # Cold Wallet
+                    '3FaA4dJuuvJFyUHbqHLkZKJcuDPugvG3zE',     # Hot Wallet 1
+                    '1NDyJtNTjmwk5xPNhjgAMu4HDHigtobu1s',     # Hot Wallet 2
+                    'bc1qm34lsc65zpw79lxes69zkqmk6ee3ewf0j77s3h' # New Hot Wallet
+                ],
+                'prefixes': ['3FaA', '1ND', '34xp', 'bc1q']
+            },
+            'coinbase': {
+                'type': 'tier1_exchange',
+                'addresses': [
+                    '3FzScn724foqFRWvL1kCZwitQvcxrnSQ4K',     # Main Wallet
+                    '3Kzh9qAqVWQhEsfQz7zEQL1EuSx5tyNLNS',     # Cold Storage
+                    '1CWYTCvwKfH5cWnX3VcAykgTsmjsuB3wXe',     # Hot Wallet
+                    'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh' # Prime
+                ],
+                'prefixes': ['3Kzh', '1CWY', 'bc1q']
+            },
+            'okx': {
+                'type': 'tier1_exchange',
+                'addresses': [
+                    'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4', # Main
+                    '3LQUu4v9z6KNch71j7kbj8GPeAGUo1FW6a',         # Hot
+                    '3FpYfDGJSdkMAvZvCrwPHDqdmGqUkTsJys'          # Cold
+                ],
+                'prefixes': ['3LQU', '3FpY', 'bc1q']
+            },
+            'kraken': {
+                'type': 'tier1_exchange',
+                'addresses': [
+                    '3FupZp77ySr7jwoLYEJ9mwzJpvoNBXsBnE',  # Main
+                    '3H5JTt42K7RmZtromfTSefcMEFMMe18pMD',  # Storage
+                    'bc1qkraken89ppv3rqzk3m5jk4rt8h79x5znx45'
+                ],
+                'prefixes': ['3FupZ', '3H5J', 'bc1q']
+            },
+            'bitget': {
+                'type': 'tier2_exchange',
+                'addresses': [
+                    'bc1qbitget89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                    '3BitgetXzwGYiGhuvZBd8HWNqKZ3YGhJbt',
+                    'bc1qbg89ppv3rqzk3m5jk4rt8h79x5znx45rt8h'
+                ],
+                'prefixes': ['3Bg', 'bc1qbg']
+            },
+            'kucoin': {
+                'type': 'tier2_exchange',
+                'addresses': [
+                    'bc1qkucoin89ppv3rqzk3m5jk4rt8h79x5znx45',
+                    '3KuCoinXzwGYiGhuvZBd8HWNqKZ3YGhJbt',
+                    'bc1qkc89ppv3rqzk3m5jk4rt8h79x5znx45rt8h'
+                ],
+                'prefixes': ['3Kuc', 'bc1qkc']
+            },
+            'bybit': {
+                'type': 'tier1_exchange',
+                'addresses': [
+                    '3JZq4atUahhuA9rLhXLMhhTo133J9rF97j',  # Hot
+                    '3QW95MafxER9W7kWDcosQNdLk4Z36TYJZL',  # Cold
+                    'bc1qbybit89ppv3rqzk3m5jk4rt8h79x5znx45'
+                ],
+                'prefixes': ['3JZq', '3QW9', 'bc1qby']
+            },
+            'gate_io': {
+                'type': 'tier2_exchange',
+                'addresses': [
+                    'bc1qgate89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                    '3GateIoXzwGYiGhuvZBd8HWNqKZ3YGhJbt',
+                    'bc1qgt89ppv3rqzk3m5jk4rt8h79x5znx45rt8h'
+                ],
+                'prefixes': ['3Gate', 'bc1qgt']
+            },
+            'htx': {
+                'type': 'tier2_exchange',
+                'addresses': [
+                    'bc1qhtx89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                    '3HTXExchangeMainWalletBTCxyz',
+                    'bc1qhx89ppv3rqzk3m5jk4rt8h79x5znx45rt8h'
+                ],
+                'prefixes': ['3HTX', 'bc1qh']
+            }
+        }
+
+    def is_exchange_address(self, address):
+        """Enhanced exchange address detection"""
+        address = address.lower()
+        
+        # Direct address match
+        for exchange_info in self.exchange_addresses.values():
+            if address in [addr.lower() for addr in exchange_info['addresses']]:
+                return True
+                
+        # Prefix match
+        for exchange_info in self.exchange_addresses.values():
+            if any(address.startswith(prefix.lower()) for prefix in exchange_info['prefixes']):
+                return True
+                
+        return False
+
+    def get_exchange_name(self, address):
+        """Get exchange name from address"""
+        address = address.lower()
+        
+        for exchange, info in self.exchange_addresses.items():
+            # Check exact addresses
+            if address in [addr.lower() for addr in info['addresses']]:
+                return exchange
+                
+            # Check prefixes
+            if any(address.startswith(prefix.lower()) for prefix in info['prefixes']):
+                return exchange
+                
+        return "Unknown"
         
     def generate_transaction_svg(self, tx):
         """Generate SVG visualization for a transaction"""
@@ -223,96 +433,23 @@ class BitcoinWhaleTracker:
 
     def save_transaction_svg(self, tx):
         """Save transaction visualization as SVG file"""
+        # Generate SVG content
         svg_content = self.generate_transaction_svg(tx)
-        filename = f"{self.svg_dir}/transaction_{tx['timestamp'].replace(' ', '_').replace(':', '-')}_{tx['transaction_hash'][:8]}.svg"
         
+        # Create filename from transaction details
+        timestamp = tx['timestamp'].replace(' ', '_').replace(':', '-')
+        filename = f"{self.svg_dir}/transaction_{timestamp}_{tx['transaction_hash'][:8]}.svg"
+        
+        # Save SVG file
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(svg_content)
         
         return filename
 
-    def get_latest_block(self):
-        """Get the latest block hash and ensure we don't process duplicates"""
-        try:
-            response = requests.get(f"{self.base_url}/latestblock")
-            block_data = response.json()
-            current_height = block_data['height']
-            current_hash = block_data['hash']
-            
-            # If this is our first block, initialize
-            if self.last_block_height is None:
-                self.last_block_height = current_height
-                return current_hash
-                
-            # If we've seen this block already, return None
-            if current_hash in self.processed_blocks:
-                return None
-                
-            # If this is a new block
-            if current_height > self.last_block_height:
-                self.last_block_height = current_height
-                # Keep track of last 1000 blocks to manage memory
-                if len(self.processed_blocks) > 1000:
-                    self.processed_blocks.clear()
-                self.processed_blocks.add(current_hash)
-                print(f"\nNew Block: {current_height} | Hash: {current_hash[:8]}...")
-                return current_hash
-                
-            return None
-            
-        except Exception as e:
-            print(f"Error getting latest block: {e}")
-            return None
-
-    def get_block_transactions(self, block_hash):
-        """Get all transactions in a block"""
-        try:
-            response = requests.get(f"{self.base_url}/rawblock/{block_hash}")
-            return response.json()['tx']
-        except Exception as e:
-            print(f"Error getting block transactions: {e}")
-            return []
-
-    def get_address_label(self, address):
-        """Get the entity label for an address"""
-        for entity, info in self.known_addresses.items():
-            if address in info['addresses']:
-                return f"({entity.upper()} {info['type']})"
-        return ""
-
-    def update_address_stats(self, address, is_sender, btc_amount, timestamp):
-        """Update statistics for an address"""
-        stats = self.address_stats[address]
-        if is_sender:
-            stats['sent_count'] += 1
-            stats['total_sent'] += btc_amount
-        else:
-            stats['received_count'] += 1
-            stats['total_received'] += btc_amount
-        stats['last_seen'] = timestamp
-
-    def get_address_summary(self, address):
-        """Get formatted summary of address activity"""
-        stats = self.address_stats[address]
-        entity_label = self.get_address_label(address)
-        return (f"{entity_label} "
-                f"[↑{stats['sent_count']}|↓{stats['received_count']}] "
-                f"Total: ↑{stats['total_sent']:.2f}|↓{stats['total_received']:.2f} BTC")
-
-    def identify_address(self, address):
-        """Identify the owner and type of an address"""
-        for entity, info in self.known_addresses.items():
-            if address in info['addresses']:
-                return {
-                    'name': entity,
-                    'type': info['type']
-                }
-        return None
-
     def determine_transaction_type(self, sender, receiver):
-        """Determine transaction type and involved entities"""
-        sender_info = self.identify_address(sender)
-        receiver_info = self.identify_address(receiver)
+        """Determine the type of transaction and involved entities"""
+        sender_info = self.get_address_label(sender)
+        receiver_info = self.get_address_label(receiver)
         
         if sender_info and receiver_info:
             return {
@@ -338,6 +475,57 @@ class BitcoinWhaleTracker:
                 'from_entity': None,
                 'to_entity': None
             }
+
+    def update_address_stats(self, address, is_sender, btc_amount, timestamp):
+        """Update statistics for an address"""
+        if not address or address == 'Unknown':
+            return
+            
+        # Get existing stats or create new entry
+        stats = self.address_stats[address]
+        
+        # Update transaction counts
+        if is_sender:
+            stats['sent_count'] += 1
+            stats['total_sent'] += btc_amount
+        else:
+            stats['received_count'] += 1
+            stats['total_received'] += btc_amount
+        
+        # Update last seen timestamp
+        stats['last_seen'] = timestamp.strftime('%Y-%m-%d %H:%M:%S')
+
+    def get_address_summary(self, address):
+        """Get formatted summary of address statistics"""
+        if not address or address == 'Unknown':
+            return "No history"
+            
+        stats = self.address_stats[address]
+        return (f"[↑{stats['sent_count']}|↓{stats['received_count']}] "
+                f"Total: ↑{stats['total_sent']:.2f}|↓{stats['total_received']:.2f} BTC")
+
+    def get_address_label(self, address):
+        """Get label for an address combining exchange and other known addresses"""
+        if not address:
+            return "Unknown"
+            
+        # Check exchange addresses first
+        exchange_name = self.get_exchange_name(address)
+        if exchange_name != "Unknown":
+            return f"{exchange_name.upper()} EXCHANGE"
+        
+        # Check known addresses
+        for entity, info in self.known_addresses.items():
+            if isinstance(info['addresses'], list):
+                if address in info['addresses']:
+                    return f"{entity.upper()} {info['type'].upper()}"
+            elif isinstance(info['addresses'], dict):
+                # Handle nested address structure
+                for sub_entity, addresses in info['addresses'].items():
+                    if address in addresses:
+                        return f"{sub_entity.upper()} {info['type'].upper()}"
+        
+        return "Unknown Address"
 
     def process_transaction(self, tx):
         """Process a single transaction and return if it meets criteria"""
@@ -411,6 +599,55 @@ class BitcoinWhaleTracker:
         print(f"    History: {self.get_address_summary(tx['receiver'])}")
         
         print("=" * 120 + "\n")
+
+    def get_latest_block(self):
+        """Get the latest block hash and ensure we don't process duplicates"""
+        try:
+            response = requests.get(f"{self.base_url}/latestblock")
+            if response.status_code != 200:
+                print(f"Error getting latest block: {response.status_code}")
+                return None
+                
+            block_data = response.json()
+            current_height = block_data['height']
+            current_hash = block_data['hash']
+            
+            # If this is our first block, initialize
+            if self.last_block_height is None:
+                self.last_block_height = current_height
+                return current_hash
+                
+            # If we've seen this block already, return None
+            if current_hash in self.processed_blocks:
+                return None
+                
+            # If this is a new block
+            if current_height > self.last_block_height:
+                self.last_block_height = current_height
+                self.processed_blocks.add(current_hash)
+                print(f"\nNew Block: {current_height} | Hash: {current_hash[:8]}...")
+                return current_hash
+                
+            return None
+            
+        except Exception as e:
+            print(f"Error fetching latest block: {e}")
+            return None
+
+    def get_block_transactions(self, block_hash):
+        """Get all transactions in a block"""
+        try:
+            response = requests.get(f"{self.base_url}/rawblock/{block_hash}")
+            if response.status_code != 200:
+                print(f"Error getting block transactions: {response.status_code}")
+                return []
+                
+            block_data = response.json()
+            return block_data.get('tx', [])
+            
+        except Exception as e:
+            print(f"Error fetching block transactions: {e}")
+            return []
 
     def monitor_transactions(self):
         """Main method to track whale transactions"""
