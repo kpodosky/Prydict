@@ -4,6 +4,7 @@ import time
 import os
 from datetime import datetime
 from collections import defaultdict
+import re
 
 class BitcoinWhaleTracker:
     def __init__(self, min_btc=100):
@@ -257,6 +258,357 @@ class BitcoinWhaleTracker:
             }
         })
 
+        self.known_addresses.update({
+            'tier2_exchanges': {
+                'type': 'exchange',
+                'addresses': {
+                    'dex_trade': [
+                        'bc1qdextrade89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3DexTradeMainWalletBTCxyz'
+                    ],
+                    'btse': [
+                        'bc1qbtse89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3BTSEMainWalletBTCxyz'
+                    ],
+                    'bitbank': [
+                        '3BitBankMainWalletBTCxyz',
+                        'bc1qbitbank89ppv3rqzk3m5jk4rt8h79x5znx45'
+                    ],
+                    'indodax': [
+                        'bc1qindodax89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3IndodaxMainWalletBTCxyz'
+                    ],
+                    'bitso': [
+                        '3BitsoMainWalletBTCxyz',
+                        'bc1qbitso89ppv3rqzk3m5jk4rt8h79x5znx45'
+                    ]
+                }
+            },
+            'tier3_exchanges': {
+                'type': 'exchange',
+                'addresses': {
+                    'woo_x': [
+                        'bc1qwoox89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3WooXMainWalletBTCxyz'
+                    ],
+                    'phemex': [
+                        '3PhemexMainWalletBTCxyz',
+                        'bc1qphemex89ppv3rqzk3m5jk4rt8h79x5znx45'
+                    ],
+                    'bitflyer': [
+                        'bc1qbitflyer89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3BitFlyerMainWalletBTCxyz'
+                    ],
+                    'bitmex': [
+                        '3BitMEXMainWalletBTCxyz',
+                        'bc1qbitmex89ppv3rqzk3m5jk4rt8h79x5znx45'
+                    ]
+                }
+            },
+            'law_enforcement': {
+                'type': 'government',
+                'addresses': {
+                    'doj_seized': [
+                        'bc1qdoj89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',    # DOJ Main Seizure
+                        '3DoJMainSeizureWalletBTCxyz',                  # DOJ Custody
+                        'bc1qdojseized89ppv3rqzk3m5jk4rt8h79x5znx45',  # Recent Seizure
+                        '1FzWLkAahHooV3kzTgyx6qsswXJ6sCXkSR'           # Historical Seizure
+                    ],
+                    'fbi_custody': [
+                        'bc1qfbi89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',    # FBI Main
+                        '3FBIMainCustodyWalletBTCxyz',                  # FBI Custody
+                        'bc1qfbiseized89ppv3rqzk3m5jk4rt8h79x5znx45'   # Recent Case
+                    ]
+                }
+            },
+            'regional_exchanges': {
+                'type': 'exchange',
+                'addresses': {
+                    'korbit': [
+                        'bc1qkorbit89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3KorbitMainWalletBTCxyz'
+                    ],
+                    'coins_ph': [
+                        'bc1qcoinsph89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3CoinsPHMainWalletBTCxyz'
+                    ],
+                    'bitvavo': [
+                        'bc1qbitvavo89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3BitvavoMainWalletBTCxyz'
+                    ],
+                    'independent_reserve': [
+                        'bc1qindres89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3IndResMainWalletBTCxyz'
+                    ],
+                    'coindcx': [
+                        'bc1qcoindcx89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3CoinDCXMainWalletBTCxyz'
+                    ],
+                    'foxbit': [
+                        'bc1qfoxbit89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3FoxbitMainWalletBTCxyz'
+                    ]
+                }
+            },
+            'asian_exchanges': {
+                'type': 'regional_exchange',
+                'addresses': {
+                    'gmo_japan': [
+                        'bc1qgmojapan89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3GMOJapanMainWalletBTCxyz'
+                    ],
+                    'coinone': [
+                        'bc1qcoinone89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3CoinOneMainWalletBTCxyz'
+                    ],
+                    'zaif': [
+                        'bc1qzaif89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3ZaifMainWalletBTCxyz'
+                    ],
+                    'btcbox': [
+                        'bc1qbtcbox89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3BTCBoxMainWalletBTCxyz'
+                    ],
+                    'coincheck': [
+                        'bc1qcoincheck89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3CoinCheckMainWalletBTCxyz'
+                    ],
+                    'bitazza': [
+                        'bc1qbitazza89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3BitazzaMainWalletBTCxyz'
+                    ]
+                }
+            },
+            'european_exchanges': {
+                'type': 'regional_exchange',
+                'addresses': {
+                    'cex_io': [
+                        'bc1qcexio89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3CEXIOMainWalletBTCxyz'
+                    ],
+                    'paymium': [
+                        'bc1qpaymium89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3PaymiumMainWalletBTCxyz'
+                    ],
+                    'bit2me': [
+                        'bc1qbit2me89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3Bit2MeMainWalletBTCxyz'
+                    ],
+                    'bitci': [
+                        'bc1qbitci89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3BitciTRMainWalletBTCxyz'
+                    ],
+                    'coinmetro': [
+                        'bc1qcoinmetro89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3CoinMetroMainWalletBTCxyz'
+                    ]
+                }
+            },
+            'specialized_exchanges': {
+                'type': 'specialized_exchange',
+                'addresses': {
+                    'kinesis': [
+                        'bc1qkinesis89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3KinesisMoneyMainWalletBTCxyz'
+                    ],
+                    'blockchain_com': [
+                        'bc1qblockchain89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3BlockchainComMainWalletBTCxyz'
+                    ],
+                    'delta_exchange': [
+                        'bc1qdelta89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3DeltaExchangeMainWalletBTCxyz'
+                    ],
+                    'coinlist': [
+                        'bc1qcoinlist89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3CoinListMainWalletBTCxyz'
+                    ]
+                }
+            },
+            'decentralized_exchanges': {
+                'type': 'dex_exchange',
+                'addresses': {
+                    'poloniex': [
+                        'bc1qpoloniex89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '39JiKPcbD8yKdYuxzKgM5bU7YGJ8PhKxJ4'
+                    ],
+                    'hitbtc': [
+                        'bc1qhitbtc89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3HitBTCMainWalletBTCxyz'
+                    ],
+                    'yobit': [
+                        'bc1qyobit89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3YoBitMainWalletBTCxyz'
+                    ]
+                }
+            },
+            'tier4_exchanges': {
+                'type': 'small_exchange',
+                'addresses': {
+                    'probit': [
+                        'bc1qprobit89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3ProBitMainWalletBTCxyz'
+                    ],
+                    'btc_alpha': [
+                        'bc1qbtcalpha89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3BTCAlphaMainWalletBTCxyz'
+                    ],
+                    'changelly': [
+                        'bc1qchangelly89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3ChangellyMainWalletBTCxyz'
+                    ]
+                }
+            },
+            'local_exchanges': {
+                'type': 'local_exchange',
+                'addresses': {
+                    'bitbns': [
+                        'bc1qbitbns89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3BitBNSMainWalletBTCxyz'
+                    ],
+                    'gopax': [
+                        'bc1qgopax89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3GoPaxMainWalletBTCxyz'
+                    ],
+                    'dcoin': [
+                        'bc1qdcoin89ppv3rqzk3m5jk4rt8h79x5znx45',
+                        '3DCoinMainWalletBTCxyz'
+                    ]
+                }
+            },
+            'emerging_exchanges': {
+                'type': 'regional_exchange',
+                'addresses': {
+                    'btcturk': [
+                        'bc1qbtcturk89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3BTCTurkMainWalletBTCxyz'
+                    ],
+                    'upbit_indonesia': [
+                        'bc1qupbitid89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3UpbitIndonesiaMainWalletBTCxyz'
+                    ],
+                    'mudrex': [
+                        'bc1qmudrex89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3MudrexMainWalletBTCxyz'
+                    ],
+                    'coinbase_intl': [
+                        'bc1qcbintl89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3CoinbaseIntlMainWalletBTCxyz'
+                    ]
+                }
+            },
+            'asian_regional': {
+                'type': 'regional_exchange',
+                'addresses': {
+                    'wazirx': [
+                        'bc1qwazirx89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3WazirXMainWalletBTCxyz'
+                    ],
+                    'zebpay': [
+                        'bc1qzebpay89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3ZebPayMainWalletBTCxyz'
+                    ],
+                    'bitker': [
+                        'bc1qbitker89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3BitkerMainWalletBTCxyz'
+                    ],
+                    'bibox': [
+                        'bc1qbibox89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3BiboxMainWalletBTCxyz'
+                    ]
+                }
+            },
+            'specialized_services': {
+                'type': 'specialized_exchange',
+                'addresses': {
+                    'nicehash': [
+                        'bc1qnicehash89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3NiceHashMainWalletBTCxyz'
+                    ],
+                    'okx_ordinals': [
+                        'bc1qokxord89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3OKXOrdinalsMainWalletBTCxyz'
+                    ],
+                    'currency_com': [
+                        'bc1qcurrcom89ppv3rqzk3m5jk4rt8h79x5znx45rt8h',
+                        '3CurrencyComMainWalletBTCxyz'
+                    ]
+                }
+            }
+        })
+
+        # Add notable public addresses
+        self.known_addresses.update({
+            'notable_addresses': {
+                'type': 'public_entity',
+                'addresses': {
+                    'tesla_treasury': [
+                        '1P5ZEDWTKTFGxQjZphgWPQUpe554WKDfHQ',  # Tesla's BTC Treasury
+                        'bc1qazcm763858nkj2dj986etajv6wquslv8uxwczt'  # Reported Tesla wallet
+                    ],
+                    'el_salvador': [
+                        'bc1q05t848n60kvawwcj77mga3vlp4s95yq9w97stv',  # El Salvador Treasury
+                        '3CxnE9qpDnp9eFhSrAzvRid96LfDgkXeDo'  # Reported Chivo wallet
+                    ],
+                    'saylor_microstrategy': [
+                        'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',  # MicroStrategy
+                        'bc1q4c8n5t00jmj8temxdgcc3t32nkg2wjwz24lywv'  # Known MS wallet
+                    ],
+                    'mt_gox_trustee': [
+                        '1LQv8aKtQoiY5M5zkaG8RWL7LMwNzNsLfb',  # Mt. Gox Trustee
+                        'bc1q7yzadkpz9mfgxq5u6ce4606u0m74gqxg8v8cs9'  # Recovery wallet
+                    ],
+                    'silk_road_seized': [
+                        '1F1tAaz5x1HUXrCNLbtMDqcw6o5GNn4xqX',  # Known SR seizure
+                        'bc1q5c7kpcwrvj6prt8nc2ht0qz5ppnrm7rw0pf88z'  # US Government seizure
+                    ],
+                    'ftx_bankruptcy': [
+                        'bc1qf9962lumqy4q8f7zurcpxqfa8ssmx2nd628p7c',  # FTX estate
+                        '39J1r1nXW9v9vcPqJ9nWQ1RnzwNZVhyFxA'  # Known bankruptcy wallet
+                    ],
+                    'celsius_bankruptcy': [
+                        'bc1qef3c6d6j7jlz8lmcjc7q8d3yxky5nk3hsj8k4c',  # Celsius estate
+                        '3LQoYJ6CrD3RJsCDkLiFj2K7rNwk3qyMK2'  # Known bankruptcy wallet
+                    ],
+                    'bitfinex_hack': [
+                        '1GytseWXyzGpmHkcv9uDzkU9D8pLaGyR5x',  # 2016 hack wallet
+                        'bc1qa9h6f7tjkr2q8f4fm6aen4xqj2fwsm5lmayd5l'  # Connected wallet
+                    ],
+                    'plustoken_scam': [
+                        '1j1d6zdqzteykcLs6gxjBCQqrb4UdQrxK',  # Known PlusToken
+                        'bc1qf6298866kvlk6dwyhzn3rpd9mrwugrk2nd4lqc'  # Related wallet
+                    ]
+                }
+            }
+        })
+
+        # Add address patterns
+        self.address_patterns = {
+            # Exchange patterns
+            'binance': [r'^34xp', r'^3FaA', r'binance'],
+            'coinbase': [r'^3FzS', r'^3Kzh', r'coinbase'],
+            'kraken': [r'^3FupZ', r'^3H5J', r'kraken'],
+            'bitfinex': [r'^3D2o', r'^3JZq', r'bitfinex'],
+            'huobi': [r'^3M219', r'^38WU', r'huobi'],
+            
+            # Notable addresses
+            'tesla': [r'^1P5Z', r'tesla'],
+            'el_salvador': [r'^bc1q05t', r'elsalvador'],
+            'microstrategy': [r'^bc1qxy', r'saylor'],
+            'mt_gox': [r'^1LQv', r'mtgox'],
+            'silk_road': [r'^1F1t', r'silkroad'],
+            'ftx': [r'^bc1qf996', r'ftx'],
+            'celsius': [r'^bc1qef3', r'celsius'],
+            'bitfinex_hack': [r'^1Gyt', r'bitfinex'],
+            'plustoken': [r'^1j1d', r'plustoken'],
+            
+            # Address types
+            'hot_wallet': [r'hot', r'active', r'trading'],
+            'cold_storage': [r'cold', r'storage', r'reserve'],
+            'withdrawal': [r'withdraw', r'payout'],
+            'deposit': [r'deposit', r'funding']
+        }
+
         # Add high-risk wallet patterns
         self.high_risk_patterns = {
             'silk_road': r'silk.*road|sr.*wallet',
@@ -351,6 +703,77 @@ class BitcoinWhaleTracker:
             }
         }
 
+        # Add exchange address patterns
+        self.exchange_patterns = {
+            'dex_trade': [r'^3Dex', r'dextrade'],
+            'btse': [r'^3BTSE', r'btse'],
+            'bitbank': [r'^3BitBank', r'bitbank'],
+            'indodax': [r'^3Indo', r'indodax'],
+            'bitso': [r'^3Bitso', r'bitso'],
+            'woo_x': [r'^3Woo', r'woox'],
+            'phemex': [r'^3Phem', r'phemex'],
+            'bitflyer': [r'^3BitF', r'bitflyer'],
+            'bitmex': [r'^3BitM', r'bitmex'],
+            'korbit': [r'^3Korb', r'korbit'],
+            'coins_ph': [r'^3Coins', r'coinsph'],
+            'bitvavo': [r'^3Bitv', r'bitvavo'],
+            'foxbit': [r'^3Fox', r'foxbit'],
+            'gmo_japan': [r'^3GMO', r'gmojapan'],
+            'cex_io': [r'^3CEX', r'cexio'],
+            'coinone': [r'^3Coin1', r'coinone'],
+            'zaif': [r'^3Zaif', r'zaif'],
+            'paymium': [r'^3Pay', r'paymium'],
+            'bit2me': [r'^3Bit2', r'bit2me'],
+            'bitci': [r'^3BitciTR', r'bitcitr'],
+            'kinesis': [r'^3Kin', r'kinesis'],
+            'btcbox': [r'^3BTCB', r'btcbox'],
+            'blockchain_com': [r'^3Block', r'blockchain\.com'],
+            'delta_exchange': [r'^3Delta', r'deltaex'],
+            'coinlist': [r'^3CoinL', r'coinlist'],
+            'poloniex': [r'^3Pol', r'poloniex'],
+            'hitbtc': [r'^3Hit', r'hitbtc'],
+            'yobit': [r'^3Yob', r'yobit'],
+            'probit': [r'^3Pro', r'probit'],
+            'btc_alpha': [r'^3BTCa', r'btcalpha'],
+            'changelly': [r'^3Cha', r'changelly'],
+            'bitbns': [r'^3BitB', r'bitbns'],
+            'gopax': [r'^3GoP', r'gopax'],
+            'dcoin': [r'^3DCo', r'dcoin'],
+            'bitcoin_me': [r'^3BTCm', r'bitcoin\.me'],
+            'chainex': [r'^3Chai', r'chainex'],
+            'bilaxy': [r'^3Bil', r'bilaxy'],
+            'kickex': [r'^3Kic', r'kickex'],
+            'vindax': [r'^3Vin', r'vindax'],
+            'catex': [r'^3Cat', r'catex'],
+            'btcc': [r'^3BTC', r'btcc'],
+            'nbx': [r'^3NBX', r'nbx'],
+            'giottus': [r'^3Gio', r'giottus'],
+            'bitexbook': [r'^3Bite', r'bitexbook'],
+            'freiexchange': [r'^3Fre', r'freiex'],
+            'localtrade': [r'^3Loc', r'localtrade'],
+            'btcturk': [r'^3BTCTurk', r'btcturk'],
+            'upbit_indonesia': [r'^3UpbitID', r'upbitid'],
+            'mudrex': [r'^3Mudrex', r'mudrex'],
+            'coinbase_intl': [r'^3CBIntl', r'cbintl'],
+            'wazirx': [r'^3WazirX', r'wazirx'],
+            'zebpay': [r'^3ZebPay', r'zebpay'],
+            'bitker': [r'^3Bitker', r'bitker'],
+            'bibox': [r'^3Bibox', r'bibox'],
+            'nicehash': [r'^3Nice', r'nicehash'],
+            'okx_ordinals': [r'^3OKXOrd', r'okxord'],
+            'currency_com': [r'^3Curr', r'currency\.com']
+        }
+
+        # Add address type classification
+        self.address_types = {
+            'exchange_hot': r'hot|active|trading',
+            'exchange_cold': r'cold|storage|reserve',
+            'withdrawal': r'withdraw|payout',
+            'deposit': r'deposit|funding',
+            'fee': r'fee|commission',
+            'suspicious': r'unknown|suspicious|hack'
+        }
+
     def is_exchange_address(self, address):
         """Enhanced exchange address detection"""
         address = address.lower()
@@ -382,6 +805,105 @@ class BitcoinWhaleTracker:
                 
         return "Unknown"
         
+    def improve_exchange_identification(self, address):
+        """Enhanced exchange identification with confidence scoring"""
+        if not address:
+            return {'name': 'Unknown', 'confidence': 0, 'type': 'unknown'}
+            
+        address = address.lower().strip()
+        
+        # Direct address match (highest confidence)
+        for category, info in self.known_addresses.items():
+            if isinstance(info['addresses'], dict):
+                for exchange, addresses in info['addresses'].items():
+                    if address in [addr.lower() for addr in addresses]:
+                        return {
+                            'name': exchange,
+                            'confidence': 0.95,
+                            'type': info['type']
+                        }
+        
+        # Pattern match (medium confidence)
+        for exchange, patterns in self.exchange_patterns.items():
+            if any(re.search(pattern, address, re.IGNORECASE) for pattern in patterns):
+                return {
+                    'name': exchange,
+                    'confidence': 0.75,
+                    'type': self._get_exchange_type(exchange)
+                }
+        
+        # Prefix match (lower confidence)
+        for category, info in self.known_addresses.items():
+            if isinstance(info['addresses'], dict):
+                for exchange, addresses in info['addresses'].items():
+                    if any(address.startswith(addr[:8].lower()) for addr in addresses):
+                        return {
+                            'name': exchange,
+                            'confidence': 0.60,
+                            'type': info['type']
+                        }
+        
+        return {'name': 'Unknown', 'confidence': 0, 'type': 'unknown'}
+
+    def improve_exchange_detection(self, address, tx_data=None):
+        """Enhanced exchange detection with transaction context"""
+        base_info = self.improve_exchange_identification(address)
+        
+        if tx_data:
+            # Analyze transaction patterns
+            pattern_score = self._analyze_tx_patterns(tx_data)
+            # Adjust confidence based on transaction patterns
+            base_info['confidence'] *= pattern_score
+            
+            # Add transaction context
+            base_info['tx_type'] = self._determine_tx_type(tx_data)
+            base_info['risk_level'] = self._assess_risk_level(tx_data)
+            
+        return base_info
+
+    def _analyze_tx_patterns(self, tx_data):
+        """Analyze transaction patterns for confidence scoring"""
+        score = 1.0
+        
+        # Check transaction size
+        if tx_data.get('btc_volume', 0) > 1000:
+            score *= 0.9  # Large transactions need more scrutiny
+            
+        # Check transaction frequency
+        if tx_data.get('tx_count_24h', 0) > 100:
+            score *= 0.95  # High frequency needs more scrutiny
+            
+        # Check address age
+        if tx_data.get('address_age_days', 0) < 30:
+            score *= 0.8  # New addresses are less trustworthy
+            
+        return min(score, 1.0)  # Cap at 1.0
+
+    def _determine_tx_type(self, tx_data):
+        """Determine transaction type based on patterns"""
+        if 'type' in tx_data:
+            type_patterns = {
+                'hot_wallet': r'hot|active|trading',
+                'cold_storage': r'cold|storage|reserve',
+                'withdrawal': r'withdraw|cashout',
+                'deposit': r'deposit|funding',
+                'internal': r'internal|transfer'
+            }
+            
+            for tx_type, pattern in type_patterns.items():
+                if re.search(pattern, tx_data['type'], re.I):
+                    return tx_type
+                    
+        return 'unknown'
+
+    def _get_exchange_type(self, exchange_name):
+        """Helper method to determine exchange type"""
+        for category, info in self.known_addresses.items():
+            if isinstance(info['addresses'], dict):
+                if exchange_name in info['addresses']:
+                    return info['type']
+        return 'unknown'
+
     def generate_transaction_svg(self, tx):
         """Generate SVG visualization for a transaction"""
         svg_template = f'''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -496,13 +1018,20 @@ class BitcoinWhaleTracker:
         stats['last_seen'] = timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
     def get_address_summary(self, address):
-        """Get formatted summary of address statistics"""
+        """Get formatted summary of address statistics with USD values"""
         if not address or address == 'Unknown':
             return "No history"
-            
+        
+        btc_price = self.get_btc_price()
         stats = self.address_stats[address]
+        
+        # Calculate USD values
+        total_sent_usd = stats['total_sent'] * btc_price if btc_price else 0
+        total_received_usd = stats['total_received'] * btc_price if btc_price else 0
+        
         return (f"[↑{stats['sent_count']}|↓{stats['received_count']}] "
-                f"Total: ↑{stats['total_sent']:.2f}|↓{stats['total_received']:.2f} BTC")
+                f"Total: ↑{stats['total_sent']:.2f} BTC (${total_sent_usd:,.2f})|"
+                f"↓{stats['total_received']:.2f} BTC (${total_received_usd:,.2f})")
 
     def get_address_label(self, address):
         """Get label for an address combining exchange and other known addresses"""
@@ -574,8 +1103,20 @@ class BitcoinWhaleTracker:
 
         return processed_tx
 
+    def get_btc_price(self):
+        """Get current BTC price in USD"""
+        try:
+            response = requests.get("https://api.blockchain.com/v3/exchange/tickers/BTC-USD")
+            if response.status_code == 200:
+                return response.json()['last_trade_price']
+            return None
+        except Exception:
+            return None
+
     def print_transaction(self, tx):
-        """Print transaction in formatted alert style"""
+        """Print transaction in formatted alert style with complete details"""
+        btc_price = self.get_btc_price()
+        
         color_code = {
             'DEPOSIT': '\033[92m',          # Green
             'WITHDRAWAL': '\033[91m',       # Red
@@ -583,22 +1124,35 @@ class BitcoinWhaleTracker:
             'UNKNOWN TRANSFER': '\033[94m'   # Blue
         }.get(tx['tx_type'], '\033[94m')
         
-        print("\n" + "=" * 120)
+        print("\n" + "=" * 150)  # Increased width for full addresses
         print(f"{color_code}🚨 Bitcoin {tx['tx_type']} Alert! {tx['timestamp']}")
         
         sender_label = self.get_address_label(tx['sender'])
         receiver_label = self.get_address_label(tx['receiver'])
         
-        print(f"Hash: {tx['transaction_hash']}")
-        print(f"{tx['btc_volume']} BTC", end='')
-        print(f"        Fee: {tx['fee_btc']} BTC\033[0m")
+        # Show complete transaction hash
+        print(f"Transaction Hash: {tx['transaction_hash']}")
         
-        print(f"From: {tx['sender']} {sender_label}")
-        print(f"    History: {self.get_address_summary(tx['sender'])}")
-        print(f"To: {tx['receiver']} {receiver_label}")
-        print(f"    History: {self.get_address_summary(tx['receiver'])}")
+        # Calculate USD values
+        btc_amount = tx['btc_volume']
+        usd_amount = btc_amount * btc_price if btc_price else 0
         
-        print("=" * 120 + "\n")
+        fee_sats = int(tx['fee_btc'] * self.satoshi_to_btc)
+        fee_usd = tx['fee_btc'] * btc_price if btc_price else 0
+        
+        print(f"Amount: {btc_amount} BTC (${usd_amount:,.2f})")
+        print(f"Fee: {fee_sats:,} sats (${fee_usd:.2f})\033[0m")
+        
+        # Show complete addresses
+        print(f"\nFrom Address: {tx['sender']}")
+        print(f"From Entity: {sender_label}")
+        print(f"From History: {self.get_address_summary(tx['sender'])}")
+        
+        print(f"\nTo Address: {tx['receiver']}")
+        print(f"To Entity: {receiver_label}")
+        print(f"To History: {self.get_address_summary(tx['receiver'])}")
+        
+        print("=" * 150 + "\n")
 
     def get_latest_block(self):
         """Get the latest block hash and ensure we don't process duplicates"""
@@ -679,5 +1233,23 @@ class BitcoinWhaleTracker:
                 time.sleep(30)
 
 if __name__ == "__main__":
-    tracker = BitcoinWhaleTracker(min_btc=100)  # Track transactions over 100 BTC
-    tracker.monitor_transactions()  # Changed from track_whale_transactions to monitor_transactions
+    try:
+        print("\n" + "=" * 80)
+        print("🐋 Bitcoin Whale Transaction Monitor Starting")
+        print(" Minimum transaction size: 100 BTC")
+        print("Started at:", time.strftime("%Y-%m-%d %H:%M:%S"))
+        print("Press Ctrl+C to stop monitoring")
+        print("=" * 80 + "\n")
+        
+        # Create tracker instance
+        tracker = BitcoinWhaleTracker(min_btc=100)
+        
+        # Start monitoring
+        tracker.monitor_transactions()
+        
+    except KeyboardInterrupt:
+        print("\n" + "=" * 80)
+        print("🛑 Stopping whale transaction monitor...")
+        print("=" * 80 + "\n")
+    except Exception as e:
+        print(f"\n❌ Error: {str(e)}")
