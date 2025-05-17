@@ -1017,21 +1017,26 @@ class BitcoinWhaleTracker:
         # Update last seen timestamp
         stats['last_seen'] = timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
-    def get_address_summary(self, address):
+    def get_address_summary(self, address, btc_price=None):
         """Get formatted summary of address statistics with USD values"""
         if not address or address == 'Unknown':
             return "No history"
         
-        btc_price = self.get_btc_price()
+        if btc_price is None:
+            btc_price = self.get_btc_price() or 42000  # Default to 42k if API fails
+        
         stats = self.address_stats[address]
         
-        # Calculate USD values
-        total_sent_usd = stats['total_sent'] * btc_price if btc_price else 0
-        total_received_usd = stats['total_received'] * btc_price if btc_price else 0
+        # Calculate USD values with proper float conversion
+        total_sent_btc = float(stats['total_sent'])
+        total_received_btc = float(stats['total_received'])
+        
+        total_sent_usd = total_sent_btc * btc_price
+        total_received_usd = total_received_btc * btc_price
         
         return (f"[↑{stats['sent_count']}|↓{stats['received_count']}] "
-                f"Total: ↑{stats['total_sent']:.2f} BTC (${total_sent_usd:,.2f})|"
-                f"↓{stats['total_received']:.2f} BTC (${total_received_usd:,.2f})")
+                f"Total: ↑{total_sent_btc:.8f} BTC (${total_sent_usd:,.2f})|"
+                f"↓{total_received_btc:.8f} BTC (${total_received_usd:,.2f})")
 
     def get_address_label(self, address):
         """Get label for an address combining exchange and other known addresses"""
@@ -1115,7 +1120,7 @@ class BitcoinWhaleTracker:
 
     def print_transaction(self, tx):
         """Print transaction in formatted alert style with complete details"""
-        btc_price = self.get_btc_price()
+        btc_price = self.get_btc_price() or 42000  # Default to 42k if API fails
         
         color_code = {
             'DEPOSIT': '\033[92m',          # Green
@@ -1124,33 +1129,27 @@ class BitcoinWhaleTracker:
             'UNKNOWN TRANSFER': '\033[94m'   # Blue
         }.get(tx['tx_type'], '\033[94m')
         
-        print("\n" + "=" * 150)  # Increased width for full addresses
+        print("\n" + "=" * 150)
         print(f"{color_code}🚨 Bitcoin {tx['tx_type']} Alert! {tx['timestamp']}")
-        
-        sender_label = self.get_address_label(tx['sender'])
-        receiver_label = self.get_address_label(tx['receiver'])
-        
-        # Show complete transaction hash
         print(f"Transaction Hash: {tx['transaction_hash']}")
         
-        # Calculate USD values
-        btc_amount = tx['btc_volume']
-        usd_amount = btc_amount * btc_price if btc_price else 0
+        # Calculate USD values correctly
+        btc_amount = float(tx['btc_volume'])
+        usd_amount = btc_amount * btc_price
         
-        fee_sats = int(tx['fee_btc'] * self.satoshi_to_btc)
-        fee_usd = tx['fee_btc'] * btc_price if btc_price else 0
+        fee_sats = int(float(tx['fee_btc']) * self.satoshi_to_btc)
+        fee_usd = float(tx['fee_btc']) * btc_price
         
-        print(f"Amount: {btc_amount} BTC (${usd_amount:,.2f})")
+        print(f"Amount: {btc_amount:.8f} BTC (${usd_amount:,.2f})")
         print(f"Fee: {fee_sats:,} sats (${fee_usd:.2f})\033[0m")
         
-        # Show complete addresses
         print(f"\nFrom Address: {tx['sender']}")
-        print(f"From Entity: {sender_label}")
-        print(f"From History: {self.get_address_summary(tx['sender'])}")
+        print(f"From Entity: {self.get_address_label(tx['sender'])}")
+        print(f"From History: {self.get_address_summary(tx['sender'], btc_price)}")
         
         print(f"\nTo Address: {tx['receiver']}")
-        print(f"To Entity: {receiver_label}")
-        print(f"To History: {self.get_address_summary(tx['receiver'])}")
+        print(f"To Entity: {self.get_address_label(tx['receiver'])}")
+        print(f"To History: {self.get_address_summary(tx['receiver'], btc_price)}")
         
         print("=" * 150 + "\n")
 
@@ -1236,9 +1235,9 @@ if __name__ == "__main__":
     try:
         print("\n" + "=" * 80)
         print("🐋 Bitcoin Whale Transaction Monitor Starting")
-        print(" Minimum transaction size: 100 BTC")
-        print("Started at:", time.strftime("%Y-%m-%d %H:%M:%S"))
-        print("Press Ctrl+C to stop monitoring")
+        print("📊 Minimum transaction size: 100 BTC")
+        print("📅 Started at:", time.strftime("%Y-%m-%d %H:%M:%S"))
+        print("⚡ Press Ctrl+C to stop monitoring")
         print("=" * 80 + "\n")
         
         # Create tracker instance
