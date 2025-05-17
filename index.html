@@ -3,26 +3,35 @@
 <head>
     <title>BTC Fee Predictor</title>
     <style>
+        html, body {
+            height: 100%;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
             color: #ffffff;
             min-height: 100vh;
             margin: 0;
+            height: 100%;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            padding: 2rem;
+            padding: 0;
         }
 
         .container {
             width: 100%;
             max-width: 800px;
+            min-height: 600px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: 2rem;
+            padding: 2rem;
+            position: relative;
+            box-sizing: border-box;
         }
 
         .brand {
@@ -148,8 +157,10 @@
             color: rgba(255, 255, 255, 0.6);
             font-size: 0.9rem;
             text-align: center;
-            position: fixed;
+            position: absolute;
             bottom: 20px;
+            left: 0;
+            right: 0;
         }
 
         @keyframes fadeIn {
@@ -194,4 +205,54 @@
         <h1>Cryptocurrency Fee Optimizer</h1>
         <div class="tabs">
             <button class="tab-button active" data-tab="btc">Bitcoin</button>
-            <button class="tab-button
+            <button class="tab-button" data-tab="eth">Ethereum</button>
+            <button class="tab-button" data-tab="usdc">USDC</button>
+            <button class="tab-button" data-tab="usdt">USDT</button>
+            <button class="tab-button" data-tab="whale">Bitcoin Whale Watch</button>
+        </div>
+        <div class="tab-content active" id="btc">
+            <!-- BTC form goes here -->
+        </div>
+        <div class="tab-content" id="eth">
+            <!-- ETH form goes here -->
+        </div>
+        <div class="tab-content" id="usdc">
+            <!-- USDC form goes here -->
+        </div>
+        <div class="tab-content" id="usdt">
+            <!-- USDT form goes here -->
+        </div>
+        <div class="tab-content" id="whale">
+            <form method="POST" action="{{ url_for('whale_watch') }}">
+                {{ form.csrf_token }}
+                <label>
+                    Minimum Whale Transfer (BTC):
+                    <input type="number" step="0.01" name="min_whale_btc" required placeholder="e.g. 1000">
+                </label>
+                <button type="submit">Watch for Whale Transfers</button>
+            </form>
+            <div id="whale-results">
+                <!-- Whale watch results will be rendered here -->
+            </div>
+        </div>
+        <footer>
+            Powered by Kilanko Paul
+        </footer>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.tab-button');
+            const contents = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.dataset.tab;
+                    tabs.forEach(t => t.classList.remove('active'));
+                    contents.forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(target).classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
