@@ -13,6 +13,8 @@ from datetime import datetime, timedelta
 from web3 import Web3
 from queue import Queue
 import threading
+from BitcoinWhaleTracker import BitcoinWhaleTracker
+import time
 
 # Configure logging at the start
 logging.basicConfig(level=logging.DEBUG)
@@ -264,8 +266,12 @@ def predict_usdt():
 @app.route('/api/whale-transactions')
 def get_whale_transactions():
     transactions = []
-    while not transaction_queue.empty():
-        transactions.append(transaction_queue.get())
+    try:
+        while not transaction_queue.empty():
+            tx = transaction_queue.get_nowait()
+            transactions.append(tx)
+    except Exception as e:
+        logger.error(f"Error getting whale transactions: {e}")
     return jsonify(transactions)
 
 @app.route('/whale_watch', methods=['POST'])
@@ -281,32 +287,27 @@ def whale_watch():
             def track_transactions():
                 while True:
                     try:
-                        block_hash = whale_tracker.get_latest_block()
-                        if block_hash:
-                            transactions = whale_tracker.get_block_transactions(block_hash)
-                            for tx in transactions:
-                                whale_tx = whale_tracker.process_transaction(tx)
-                                if whale_tx:
-                                    # Add to queue instead of printing
-                                    if transaction_queue.full():
-                                        transaction_queue.get()  # Remove oldest if full
-                                    transaction_queue.put(whale_tx)
-                        time.sleep(30)
+                        transactions = whale_tracker.get_latest_transactions()
+                        for tx in transactions:
+                            if not transaction_queue.full():
+                                transaction_queue.put(tx)
+                            else:
+                                # Remove oldest transaction if queue is full
+                                transaction_queue.get()
+                                transaction_queue.put(tx)
                     except Exception as e:
-                        logger.error(f"Error in transaction tracking: {e}")
-                        time.sleep(30)
+                        logger.error(f"Error tracking transactions: {e}")
+                    time.sleep(30)  # Check every 30 seconds
             
             # Start tracking in background thread
             thread = threading.Thread(target=track_transactions, daemon=True)
             thread.start()
             
-        flash('Whale watch started successfully!')
-        return render_template('index.html', form=PredictionForm())
+        return jsonify({"status": "success", "message": "Whale watch started"})
         
     except Exception as e:
-        logger.error(f"Error starting whale watch: {e}")
-        flash(f"Error starting whale watch: {str(e)}")
-        return render_template('index.html', form=PredictionForm())
+        logger.error(f"Error in whale watch: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 def get_eth_price():
     """Fetch current ETH price in USD"""
