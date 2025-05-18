@@ -2,16 +2,31 @@ import logging
 import pandas as pd
 import numpy as np
 import requests
-from flask import Flask, render_template, request, flash
+from flask import Flask, render_template, request, flash, jsonify
 from flask_wtf.csrf import CSRFProtect
 from flask_wtf import FlaskForm
+from wtforms import FloatField, SelectField
+from wtforms.validators import DataRequired, NumberRange
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from datetime import datetime, timedelta
+from web3 import Web3
+from queue import Queue
+import threading
+from BitcoinWhaleTracker import BitcoinWhaleTracker
+import time
 
+# Configure logging at the start
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+# Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 csrf = CSRFProtect(app)
+
+transaction_queue = Queue(maxsize=100)
+whale_tracker = None
 
 class PredictionForm(FlaskForm):
     btc_amount = FloatField('BTC Amount', 
@@ -27,23 +42,16 @@ class PredictionForm(FlaskForm):
         ],
         validators=[DataRequired()]
     )
-
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    form = PredictionForm()
-    if request.method == 'POST' and form.validate():
-        try:
-            btc_amount = form.btc_amount.data
-            tx_size = form.tx_size.data
-            
-            predictor = FeePredictor()
-            logger.info("Fetching historical data...")
-            if not predictor.fetch_historical_data(days=60):
-                flash('Failed to fetch historical data')
-                return render_template('index.html', form=form)
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+    eth_amount = FloatField('ETH Amount')
+    gas_limit = SelectField('Gas Limit',
+        choices=[
+            ('21000', 'Basic Transfer (21,000)'),
+            ('65000', 'Token Transfer (~65,000)'),
+            ('200000', 'Smart Contract (~200,000)')
+        ]
+    )
+    usdc_amount = FloatField('USDC Amount')
+    usdt_amount = FloatField('USDT Amount')
 
 class FeePredictor:
     def __init__(self):
@@ -124,22 +132,67 @@ class FeePredictor:
             predictions.append((timestamp, fee))
         return sorted(predictions, key=lambda x: x[1])[:5]
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'POST':
+@app.route('/predict/btc', methods=['POST'])
+def predict_btc():
+    form = PredictionForm()
+    if request.method == 'POST' and form.validate():
         try:
-            btc_amount = float(request.form['btc_amount'])
-            if btc_amount <= 0:
-                flash('BTC amount must be positive')
-                return render_template('index.html')
-                
-            tx_size = request.form['tx_size']
+            btc_amount = form.btc_amount.data
+            tx_size = form.tx_size.data
             
             predictor = FeePredictor()
             logger.info("Fetching historical data...")
             if not predictor.fetch_historical_data(days=60):
                 flash('Failed to fetch historical data')
-                return render_template('index.html')
+                return render_template('index.html', form=form)
+            
+            logger.info("Preprocessing data...")
+            predictor.preprocess_data()
+            
+            logger.info("Training model...")
+            predictor.train_model()
+            
+            logger.info("Predicting fees...")
+            start_time = datetime.now()
+            best_times = predictor.predict_fees(start_time)
+            
+            size_mapping = {"simple": 250, "average": 500, "complex": 1000}
+            tx_size_bytes = size_mapping[tx_size]
+            
+            results = []
+            for time, fee_rate in best_times:
+                total_fee_btc = (fee_rate * tx_size_bytes) / 1e8
+                fee_percentage = (total_fee_btc / btc_amount) * 100 if btc_amount > 0 else 0
+                results.append({
+                    'time': time.strftime('%Y-%m-%d %H:%M'),
+                    'fee_rate': f"{fee_rate:.1f}",
+                    'total_fee': f"{total_fee_btc:.8f}",
+                    'fee_percent': f"{fee_percentage:.4f}"
+                })
+            
+            logger.info(f"Generated {len(results)} predictions")
+            return render_template('results.html', results=results, crypto_type='BTC')
+            
+        except Exception as e:
+            logger.error(f"Error processing request: {str(e)}")
+            flash(f"An error occurred: {str(e)}")
+            return render_template('index.html', form=form)
+    
+    return render_template('index.html', form=form)
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    form = PredictionForm()
+    if request.method == 'POST' and form.validate():
+        try:
+            btc_amount = form.btc_amount.data
+            tx_size = form.tx_size.data
+            
+            predictor = FeePredictor()
+            logger.info("Fetching historical data...")
+            if not predictor.fetch_historical_data(days=60):
+                flash('Failed to fetch historical data')
+                return render_template('index.html', form=form)
             
             logger.info("Preprocessing data...")
             predictor.preprocess_data()
@@ -168,14 +221,112 @@ def index():
             logger.info(f"Generated {len(results)} predictions")
             return render_template('results.html', results=results)
             
-            return render_template('results.html', results=results, form=form)
-            
         except Exception as e:
             logger.error(f"Error processing request: {str(e)}")
             flash(f"An error occurred: {str(e)}")
             return render_template('index.html', form=form)
     
     return render_template('index.html', form=form)
+
+@app.route('/predict/eth', methods=['POST'])
+def predict_eth():
+    if request.method == 'POST':
+        try:
+            eth_amount = float(request.form['eth_amount'])
+            gas_limit = int(request.form['gas_limit'])
+            
+            # Connect to Ethereum node (use your preferred provider)
+            w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/YOUR-PROJECT-ID'))
+            
+            # Get current gas price
+            gas_price = w3.eth.gas_price
+            
+            # Calculate fees for different priorities
+            fees = []
+            priorities = [1.0, 1.5, 2.0]  # Regular, Fast, Instant
+            
+            for priority in priorities:
+                fee_wei = int(gas_price * priority) * gas_limit
+                fee_eth = w3.from_wei(fee_wei, 'ether')
+                fee_usd = fee_eth * get_eth_price()  # Implement price fetching
+                
+                fees.append({
+                    'priority': 'Regular' if priority == 1.0 else 'Fast' if priority == 1.5 else 'Instant',
+                    'fee_eth': f"{fee_eth:.6f}",
+                    'fee_usd': f"${fee_usd:.2f}",
+                    'time_estimate': '5 min' if priority == 2.0 else '3 min' if priority == 1.5 else '10 min'
+                })
+            
+            return render_template('results.html', results=fees, crypto_type='ETH')
+            
+        except Exception as e:
+            flash(f"Error: {str(e)}")
+            return render_template('index.html')
+
+@app.route('/predict/usdc', methods=['POST'])
+def predict_usdc():
+    # Similar implementation for USDC
+    pass
+
+@app.route('/predict/usdt', methods=['POST'])
+def predict_usdt():
+    # Similar implementation for USDT
+    pass
+
+@app.route('/api/whale-transactions')
+def get_whale_transactions():
+    transactions = []
+    try:
+        while not transaction_queue.empty():
+            tx = transaction_queue.get_nowait()
+            transactions.append(tx)
+    except Exception as e:
+        logger.error(f"Error getting whale transactions: {e}")
+    return jsonify(transactions)
+
+@app.route('/whale_watch', methods=['POST'])
+def whale_watch():
+    global whale_tracker
+    
+    try:
+        min_btc = float(request.form.get('min_whale_btc', 100))
+        
+        if whale_tracker is None:
+            whale_tracker = BitcoinWhaleTracker(min_btc=min_btc)
+            
+            def track_transactions():
+                while True:
+                    try:
+                        transactions = whale_tracker.get_latest_transactions()
+                        for tx in transactions:
+                            if not transaction_queue.full():
+                                transaction_queue.put(tx)
+                            else:
+                                # Remove oldest transaction if queue is full
+                                transaction_queue.get()
+                                transaction_queue.put(tx)
+                    except Exception as e:
+                        logger.error(f"Error tracking transactions: {e}")
+                    time.sleep(30)  # Check every 30 seconds
+            
+            # Start tracking in background thread
+            thread = threading.Thread(target=track_transactions, daemon=True)
+            thread.start()
+            
+        return jsonify({"status": "success", "message": "Whale watch started"})
+        
+    except Exception as e:
+        logger.error(f"Error in whale watch: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+def get_eth_price():
+    """Fetch current ETH price in USD"""
+    try:
+        response = requests.get('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd')
+        return response.json()['ethereum']['usd']
+    except Exception as e:
+        logger.error(f"Error fetching ETH price: {e}")
+        return 0
 
 if __name__ == '__main__':
     app.run(debug=True)
