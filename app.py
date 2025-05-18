@@ -2,7 +2,7 @@ import logging
 import pandas as pd
 import numpy as np
 import requests
-from flask import Flask, render_template, request, flash, jsonify
+from flask import Flask, render_template, request, flash
 from flask_wtf.csrf import CSRFProtect
 from flask_wtf import FlaskForm
 from wtforms import FloatField, SelectField
@@ -11,10 +11,6 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from datetime import datetime, timedelta
 from web3 import Web3
-from queue import Queue
-import threading
-from BitcoinWhaleTracker import BitcoinWhaleTracker
-import time
 
 # Configure logging at the start
 logging.basicConfig(level=logging.DEBUG)
@@ -24,9 +20,6 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 csrf = CSRFProtect(app)
-
-transaction_queue = Queue(maxsize=100)
-whale_tracker = None
 
 class PredictionForm(FlaskForm):
     btc_amount = FloatField('BTC Amount', 
@@ -262,52 +255,6 @@ def predict_usdc():
 def predict_usdt():
     # Similar implementation for USDT
     pass
-
-@app.route('/api/whale-transactions')
-def get_whale_transactions():
-    transactions = []
-    try:
-        while not transaction_queue.empty():
-            tx = transaction_queue.get_nowait()
-            transactions.append(tx)
-    except Exception as e:
-        logger.error(f"Error getting whale transactions: {e}")
-    return jsonify(transactions)
-
-@app.route('/whale_watch', methods=['POST'])
-def whale_watch():
-    global whale_tracker
-    
-    try:
-        min_btc = float(request.form.get('min_whale_btc', 100))
-        
-        if whale_tracker is None:
-            whale_tracker = BitcoinWhaleTracker(min_btc=min_btc)
-            
-            def track_transactions():
-                while True:
-                    try:
-                        transactions = whale_tracker.get_latest_transactions()
-                        for tx in transactions:
-                            if not transaction_queue.full():
-                                transaction_queue.put(tx)
-                            else:
-                                # Remove oldest transaction if queue is full
-                                transaction_queue.get()
-                                transaction_queue.put(tx)
-                    except Exception as e:
-                        logger.error(f"Error tracking transactions: {e}")
-                    time.sleep(30)  # Check every 30 seconds
-            
-            # Start tracking in background thread
-            thread = threading.Thread(target=track_transactions, daemon=True)
-            thread.start()
-            
-        return jsonify({"status": "success", "message": "Whale watch started"})
-        
-    except Exception as e:
-        logger.error(f"Error in whale watch: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
 
 def get_eth_price():
     """Fetch current ETH price in USD"""
