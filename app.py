@@ -180,52 +180,9 @@ def predict_btc():
     
     return render_template('index.html', form=form)
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def index():
     form = PredictionForm()
-    if request.method == 'POST' and form.validate():
-        try:
-            btc_amount = form.btc_amount.data
-            tx_size = form.tx_size.data
-            
-            predictor = FeePredictor()
-            logger.info("Fetching historical data...")
-            if not predictor.fetch_historical_data(days=60):
-                flash('Failed to fetch historical data')
-                return render_template('index.html', form=form)
-            
-            logger.info("Preprocessing data...")
-            predictor.preprocess_data()
-            
-            logger.info("Training model...")
-            predictor.train_model()
-            
-            logger.info("Predicting fees...")
-            start_time = datetime.now()
-            best_times = predictor.predict_fees(start_time)
-            
-            size_mapping = {"simple": 250, "average": 500, "complex": 1000}
-            tx_size_bytes = size_mapping[tx_size]
-            
-            results = []
-            for time, fee_rate in best_times:
-                total_fee_btc = (fee_rate * tx_size_bytes) / 1e8
-                fee_percentage = (total_fee_btc / btc_amount) * 100 if btc_amount > 0 else 0
-                results.append({
-                    'time': time.strftime('%Y-%m-%d %H:%M'),
-                    'fee_rate': f"{fee_rate:.1f}",
-                    'total_fee': f"{total_fee_btc:.8f}",
-                    'fee_percent': f"{fee_percentage:.4f}"
-                })
-            
-            logger.info(f"Generated {len(results)} predictions")
-            return render_template('results.html', results=results)
-            
-        except Exception as e:
-            logger.error(f"Error processing request: {str(e)}")
-            flash(f"An error occurred: {str(e)}")
-            return render_template('index.html', form=form)
-    
     return render_template('index.html', form=form)
 
 @app.route('/predict/eth', methods=['POST'])
