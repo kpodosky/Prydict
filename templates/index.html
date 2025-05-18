@@ -3,16 +3,35 @@
 <head>
     <title>BTC Fee Predictor</title>
     <style>
+        html, body {
+            height: 100%;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
             color: #ffffff;
             min-height: 100vh;
             margin: 0;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            min-height: 600px;
+            margin: 0 auto;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            gap: 2rem;
             padding: 2rem;
+            position: relative;
+            box-sizing: border-box;
         }
 
         .brand {
@@ -34,15 +53,51 @@
             animation: fadeIn 1s ease-in;
         }
 
+        .tabs {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 12px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #f7931a, #e88a18);
+            border-color: transparent;
+        }
+
+        .tab-content {
+            width: 100%;
+            max-width: 600px;
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         form {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
             background: rgba(255, 255, 255, 0.1);
             padding: 2.5rem;
             border-radius: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 500px;
             backdrop-filter: blur(10px);
-            animation: slideUp 0.8s ease-out;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -102,24 +157,15 @@
             color: rgba(255, 255, 255, 0.6);
             font-size: 0.9rem;
             text-align: center;
-            position: fixed;
+            position: absolute;
             bottom: 20px;
+            left: 0;
+            right: 0;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes glow {
@@ -151,47 +197,282 @@
             font-size: 0.9rem;
             margin-top: 0.25rem;
         }
+
+        .whale-feed {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .feed-status {
+            font-size: 0.9rem;
+            color: #f7931a;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feed-status::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #f7931a;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        .transactions-container {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 1rem;
+        }
+
+        .transaction-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .transaction-card.deposit { border-color: #10B981; }
+        .transaction-card.withdrawal { border-color: #EF4444; }
+        .transaction-card.internal { border-color: #F59E0B; }
+        .transaction-card.unknown { border-color: #6B7280; }
+
+        .transaction-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .transaction-amount {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #f7931a;
+        }
+
+        .transaction-time {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .transaction-addresses {
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+
+        .transaction-details {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .address-label {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(247, 147, 26, 0.2);
+            margin: 0.2rem 0;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
     </style>
 </head>
 <body>
-    <div class="brand">Prydict</div>
-    <h1>Bitcoin Fee Optimizer</h1>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        {% for message in messages %}
-            <div class="error-message">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
+    <div class="container">
+        <div class="brand">Prydict</div>
+        <h1>Cryptocurrency Fee Optimizer</h1>
+        <div class="tabs">
+            <button class="tab-button active" data-tab="btc">Bitcoin</button>
+            <button class="tab-button" data-tab="eth">Ethereum</button>
+            <button class="tab-button" data-tab="usdc">USDC</button>
+            <button class="tab-button" data-tab="usdt">USDT</button>
+            <button class="tab-button" data-tab="whale">Bitcoin Whale Watch</button>
+        </div>
+        <div class="tab-content active" id="btc">
+            <form method="POST" action="{{ url_for('predict_btc') }}">
+                {{ form.csrf_token }}
+                <label>
+                    BTC Amount:
+                    {{ form.btc_amount(type="number", step="0.00000001", placeholder="Enter BTC amount") }}
+                    {% if form.btc_amount.errors %}
+                        {% for error in form.btc_amount.errors %}
+                            <div class="form-errors">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </label>
+                
+                <label>
+                    Transaction Size:
+                    {{ form.tx_size }}
+                    {% if form.tx_size.errors %}
+                        {% for error in form.tx_size.errors %}
+                            <div class="form-errors">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </label>
+                
+                <button type="submit">Calculate Fees</button>
+            </form>
+        </div>
+        <div class="tab-content" id="eth">
+            <form method="POST" action="{{ url_for('predict_eth') }}">
+                {{ form.csrf_token }}
+                <label>
+                    ETH Amount:
+                    <input type="number" step="0.000001" name="eth_amount" required 
+                           placeholder="Enter ETH amount">
+                </label>
+                <label>
+                    Gas Limit:
+                    <select name="gas_limit">
+                        <option value="21000">Basic Transfer (21,000)</option>
+                        <option value="65000">Token Transfer (~65,000)</option>
+                        <option value="200000">Smart Contract (~200,000)</option>
+                    </select>
+                </label>
+                <button type="submit">Calculate Gas Fees</button>
+            </form>
+        </div>
+        <div class="tab-content" id="usdc">
+            <form method="POST" action="{{ url_for('predict_usdc') }}">
+                {{ form.csrf_token }}
+                <label>
+                    USDC Amount:
+                    <input type="number" step="0.01" name="usdc_amount" required 
+                           placeholder="Enter USDC amount">
+                </label>
+                <button type="submit">Calculate USDC Transfer Fee</button>
+            </form>
+        </div>
+        <div class="tab-content" id="usdt">
+            <form method="POST" action="{{ url_for('predict_usdt') }}">
+                {{ form.csrf_token }}
+                <label>
+                    USDT Amount:
+                    <input type="number" step="0.01" name="usdt_amount" required 
+                           placeholder="Enter USDT amount">
+                </label>
+                <button type="submit">Calculate USDT Transfer Fee</button>
+            </form>
+        </div>
+        <div class="tab-content" id="whale">
+            <form method="POST" action="{{ url_for('whale_watch') }}">
+                {{ form.csrf_token }}
+                <label>
+                    Minimum Whale Transfer (BTC):
+                    <input type="number" step="0.01" name="min_whale_btc" required placeholder="e.g. 100">
+                </label>
+                <button type="submit">Start Whale Watch</button>
+            </form>
+            
+            <div class="whale-feed">
+                <div class="feed-header">
+                    <h3>🐋 Live Whale Transactions</h3>
+                    <div class="feed-status">Monitoring...</div>
+                </div>
+                <div class="transactions-container" id="whale-transactions">
+                    <!-- Transactions will be inserted here -->
+                </div>
+            </div>
+        </div>
+        <footer>
+            Powered by Kilanko Paul
+        </footer>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.tab-button');
+            const contents = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.dataset.tab;
+                    tabs.forEach(t => t.classList.remove('active'));
+                    contents.forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(target).classList.add('active');
+                });
+            });
+        });
 
-<form method="POST">
-    {{ form.csrf_token }}
-    
-    <label>
-        BTC Amount:
-        {{ form.btc_amount(type="number", step="0.00000001", placeholder="Enter BTC amount") }}
-        {% if form.btc_amount.errors %}
-            {% for error in form.btc_amount.errors %}
-                <div class="form-errors">{{ error }}</div>
-            {% endfor %}
-        {% endif %}
-    </label>
-    
-    <label>
-        Transaction Size:
-        {{ form.tx_size }}
-        {% if form.tx_size.errors %}
-            {% for error in form.tx_size.errors %}
-                <div class="form-errors">{{ error }}</div>
-            {% endfor %}
-        {% endif %}
-    </label>
-    
-    <button type="submit">Calculate Fees</button>
-</form>
+        function createTransactionCard(transaction) {
+            const card = document.createElement('div');
+            card.className = `transaction-card ${transaction.tx_type.toLowerCase()}`;
+            
+            card.innerHTML = `
+                <div class="transaction-header">
+                    <span class="transaction-amount">${transaction.btc_volume} BTC</span>
+                    <span class="transaction-time">${transaction.timestamp}</span>
+                </div>
+                <div class="transaction-addresses">
+                    <div>
+                        <span class="address-label">From: ${transaction.from_entity || 'Unknown'}</span>
+                        <div class="transaction-details">${transaction.sender}</div>
+                    </div>
+                    <div>
+                        <span class="address-label">To: ${transaction.to_entity || 'Unknown'}</span>
+                        <div class="transaction-details">${transaction.receiver}</div>
+                    </div>
+                </div>
+                <div class="transaction-details">
+                    Fee: ${transaction.fee_btc} BTC | Hash: ${transaction.transaction_hash.slice(0, 16)}...
+                </div>
+            `;
+            
+            return card;
+        }
 
-<footer>
-    Powered by Kilanko Paul
-</footer>
+        function updateWhaleFeed() {
+            fetch('/api/whale-transactions')
+                .then(response => response.json())
+                .then(transactions => {
+                    const container = document.getElementById('whale-transactions');
+                    
+                    transactions.forEach(tx => {
+                        const card = createTransactionCard(tx);
+                        container.insertBefore(card, container.firstChild);
+                    });
+                    
+                    // Keep only the last 50 transactions
+                    while (container.children.length > 50) {
+                        container.removeChild(container.lastChild);
+                    }
+                })
+                .catch(error => console.error('Error fetching transactions:', error));
+        }
+
+        // Update feed every 30 seconds
+        if (document.getElementById('whale')) {
+            setInterval(updateWhaleFeed, 30000);
+            updateWhaleFeed(); // Initial load
+        }
+    </script>
 </body>
 </html>
