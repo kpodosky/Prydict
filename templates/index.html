@@ -309,13 +309,15 @@
     <div class="container">
         <div class="brand">Prydict</div>
         <h1>Cryptocurrency Fee Optimizer</h1>
+        
         <div class="tabs">
             <button class="tab-button active" data-tab="btc">Bitcoin</button>
             <button class="tab-button" data-tab="eth">Ethereum</button>
             <button class="tab-button" data-tab="usdc">USDC</button>
             <button class="tab-button" data-tab="usdt">USDT</button>
-            <button class="tab-button" data-tab="whale">Bitcoin Whale Watch</button>
+            <button class="tab-button" data-tab="whale">Whale Watch</button>
         </div>
+
         <div class="tab-content active" id="btc">
             <form method="POST" action="{{ url_for('predict_btc') }}">
                 {{ form.csrf_token }}
@@ -339,70 +341,59 @@
                     {% endif %}
                 </label>
                 
-                <button type="submit">Calculate Fees</button>
+                <button type="submit">Calculate BTC Fees</button>
             </form>
         </div>
+
         <div class="tab-content" id="eth">
             <form method="POST" action="{{ url_for('predict_eth') }}">
                 {{ form.csrf_token }}
                 <label>
                     ETH Amount:
-                    <input type="number" step="0.000001" name="eth_amount" required 
-                           placeholder="Enter ETH amount">
+                    {{ form.eth_amount(type="number", step="0.000001", placeholder="Enter ETH amount") }}
                 </label>
                 <label>
                     Gas Limit:
-                    <select name="gas_limit">
-                        <option value="21000">Basic Transfer (21,000)</option>
-                        <option value="65000">Token Transfer (~65,000)</option>
-                        <option value="200000">Smart Contract (~200,000)</option>
-                    </select>
+                    {{ form.gas_limit }}
                 </label>
-                <button type="submit">Calculate Gas Fees</button>
+                <button type="submit">Calculate ETH Gas Fees</button>
             </form>
         </div>
+
         <div class="tab-content" id="usdc">
             <form method="POST" action="{{ url_for('predict_usdc') }}">
                 {{ form.csrf_token }}
                 <label>
                     USDC Amount:
-                    <input type="number" step="0.01" name="usdc_amount" required 
-                           placeholder="Enter USDC amount">
+                    {{ form.usdc_amount(type="number", step="0.01", placeholder="Enter USDC amount") }}
                 </label>
                 <button type="submit">Calculate USDC Transfer Fee</button>
             </form>
         </div>
+
         <div class="tab-content" id="usdt">
             <form method="POST" action="{{ url_for('predict_usdt') }}">
                 {{ form.csrf_token }}
                 <label>
                     USDT Amount:
-                    <input type="number" step="0.01" name="usdt_amount" required 
-                           placeholder="Enter USDT amount">
+                    {{ form.usdt_amount(type="number", step="0.01", placeholder="Enter USDT amount") }}
                 </label>
                 <button type="submit">Calculate USDT Transfer Fee</button>
             </form>
         </div>
+
         <div class="tab-content" id="whale">
             <form method="POST" action="{{ url_for('whale_watch') }}">
                 {{ form.csrf_token }}
                 <label>
                     Minimum Whale Transfer (BTC):
-                    <input type="number" step="0.01" name="min_whale_btc" required placeholder="e.g. 100">
+                    <input type="number" step="0.01" name="min_whale_btc" required placeholder="e.g. 1000">
                 </label>
-                <button type="submit">Start Whale Watch</button>
+                <button type="submit">Watch for Whale Transfers</button>
             </form>
-            
-            <div class="whale-feed">
-                <div class="feed-header">
-                    <h3>🐋 Live Whale Transactions</h3>
-                    <div class="feed-status">Monitoring...</div>
-                </div>
-                <div class="transactions-container" id="whale-transactions">
-                    <!-- Transactions will be inserted here -->
-                </div>
-            </div>
+            <div id="whale-results"></div>
         </div>
+
         <footer>
             Powered by Kilanko Paul
         </footer>
@@ -450,29 +441,3 @@
         }
 
         function updateWhaleFeed() {
-            fetch('/api/whale-transactions')
-                .then(response => response.json())
-                .then(transactions => {
-                    const container = document.getElementById('whale-transactions');
-                    
-                    transactions.forEach(tx => {
-                        const card = createTransactionCard(tx);
-                        container.insertBefore(card, container.firstChild);
-                    });
-                    
-                    // Keep only the last 50 transactions
-                    while (container.children.length > 50) {
-                        container.removeChild(container.lastChild);
-                    }
-                })
-                .catch(error => console.error('Error fetching transactions:', error));
-        }
-
-        // Update feed every 30 seconds
-        if (document.getElementById('whale')) {
-            setInterval(updateWhaleFeed, 30000);
-            updateWhaleFeed(); // Initial load
-        }
-    </script>
-</body>
-</html>
