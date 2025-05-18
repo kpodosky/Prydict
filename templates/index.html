@@ -317,16 +317,71 @@
             <button class="tab-button" data-tab="whale">Bitcoin Whale Watch</button>
         </div>
         <div class="tab-content active" id="btc">
-            <!-- BTC form goes here -->
+            <form method="POST" action="{{ url_for('predict_btc') }}">
+                {{ form.csrf_token }}
+                <label>
+                    BTC Amount:
+                    {{ form.btc_amount(type="number", step="0.00000001", placeholder="Enter BTC amount") }}
+                    {% if form.btc_amount.errors %}
+                        {% for error in form.btc_amount.errors %}
+                            <div class="form-errors">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </label>
+                
+                <label>
+                    Transaction Size:
+                    {{ form.tx_size }}
+                    {% if form.tx_size.errors %}
+                        {% for error in form.tx_size.errors %}
+                            <div class="form-errors">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </label>
+                
+                <button type="submit">Calculate Fees</button>
+            </form>
         </div>
         <div class="tab-content" id="eth">
-            <!-- ETH form goes here -->
+            <form method="POST" action="{{ url_for('predict_eth') }}">
+                {{ form.csrf_token }}
+                <label>
+                    ETH Amount:
+                    <input type="number" step="0.000001" name="eth_amount" required 
+                           placeholder="Enter ETH amount">
+                </label>
+                <label>
+                    Gas Limit:
+                    <select name="gas_limit">
+                        <option value="21000">Basic Transfer (21,000)</option>
+                        <option value="65000">Token Transfer (~65,000)</option>
+                        <option value="200000">Smart Contract (~200,000)</option>
+                    </select>
+                </label>
+                <button type="submit">Calculate Gas Fees</button>
+            </form>
         </div>
         <div class="tab-content" id="usdc">
-            <!-- USDC form goes here -->
+            <form method="POST" action="{{ url_for('predict_usdc') }}">
+                {{ form.csrf_token }}
+                <label>
+                    USDC Amount:
+                    <input type="number" step="0.01" name="usdc_amount" required 
+                           placeholder="Enter USDC amount">
+                </label>
+                <button type="submit">Calculate USDC Transfer Fee</button>
+            </form>
         </div>
         <div class="tab-content" id="usdt">
-            <!-- USDT form goes here -->
+            <form method="POST" action="{{ url_for('predict_usdt') }}">
+                {{ form.csrf_token }}
+                <label>
+                    USDT Amount:
+                    <input type="number" step="0.01" name="usdt_amount" required 
+                           placeholder="Enter USDT amount">
+                </label>
+                <button type="submit">Calculate USDT Transfer Fee</button>
+            </form>
         </div>
         <div class="tab-content" id="whale">
             <form method="POST" action="{{ url_for('whale_watch') }}">
