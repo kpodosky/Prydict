@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from web3 import Web3
 from queue import Queue
 import threading
-from BitcoinWhaleTracker import BitcoinWhaleTracker
+from bitcoin_whale_tracker import BitcoinWhaleTracker
 import time
 
 # Configure logging at the start
