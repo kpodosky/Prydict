@@ -132,10 +132,10 @@ class FeePredictor:
             predictions.append((timestamp, fee))
         return sorted(predictions, key=lambda x: x[1])[:5]
 
-@app.route('/predict/btc', methods=['POST'])
+@app.route('/predict_btc', methods=['POST'])
 def predict_btc():
     form = PredictionForm()
-    if request.method == 'POST' and form.validate():
+    if form.validate_on_submit():
         try:
             btc_amount = form.btc_amount.data
             tx_size = form.tx_size.data
@@ -170,77 +170,93 @@ def predict_btc():
                     'fee_percent': f"{fee_percentage:.4f}"
                 })
             
-            logger.info(f"Generated {len(results)} predictions")
             return render_template('results.html', results=results, crypto_type='BTC')
             
         except Exception as e:
             logger.error(f"Error processing request: {str(e)}")
             flash(f"An error occurred: {str(e)}")
-            return render_template('index.html', form=form)
     
     return render_template('index.html', form=form)
 
-@app.route('/', methods=['GET'])
-def index():
-    form = PredictionForm()
-    return render_template('index.html', form=form)
-
-@app.route('/predict/eth', methods=['POST'])
+@app.route('/predict_eth', methods=['POST'])
 def predict_eth():
-    if request.method == 'POST':
+    form = PredictionForm()
+    if form.validate_on_submit():
         try:
-            eth_amount = float(request.form['eth_amount'])
-            gas_limit = int(request.form['gas_limit'])
+            eth_amount = form.eth_amount.data
+            gas_limit = int(form.gas_limit.data)
             
-            # Connect to Ethereum node (use your preferred provider)
+            # Connect to Ethereum node
             w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/YOUR-PROJECT-ID'))
             
             # Get current gas price
             gas_price = w3.eth.gas_price
             
-            # Calculate fees for different priorities
-            fees = []
+            results = []
             priorities = [1.0, 1.5, 2.0]  # Regular, Fast, Instant
             
             for priority in priorities:
                 fee_wei = int(gas_price * priority) * gas_limit
                 fee_eth = w3.from_wei(fee_wei, 'ether')
-                fee_usd = fee_eth * get_eth_price()  # Implement price fetching
+                fee_usd = fee_eth * get_eth_price()
                 
-                fees.append({
+                results.append({
                     'priority': 'Regular' if priority == 1.0 else 'Fast' if priority == 1.5 else 'Instant',
                     'fee_eth': f"{fee_eth:.6f}",
                     'fee_usd': f"${fee_usd:.2f}",
                     'time_estimate': '5 min' if priority == 2.0 else '3 min' if priority == 1.5 else '10 min'
                 })
             
-            return render_template('results.html', results=fees, crypto_type='ETH')
+            return render_template('results.html', results=results, crypto_type='ETH')
             
         except Exception as e:
-            flash(f"Error: {str(e)}")
-            return render_template('index.html')
+            logger.error(f"Error processing request: {str(e)}")
+            flash(f"An error occurred: {str(e)}")
+    
+    return render_template('index.html', form=form)
 
-@app.route('/predict/usdc', methods=['POST'])
+@app.route('/predict_usdc', methods=['POST'])
 def predict_usdc():
-    # Similar implementation for USDC
-    pass
-
-@app.route('/predict/usdt', methods=['POST'])
-def predict_usdt():
-    # Similar implementation for USDT
-    pass
+    form = PredictionForm()
+    if form.validate_on_submit():
+        try:
+            usdc_amount = form.usdc_amount.data
+            gas_limit = 65000  # Standard ERC20 transfer
+            
+            w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/YOUR-PROJECT-ID'))
+            gas_price = w3.eth.gas_price
+            
+            results = []
+            priorities = [1.0, 1.5, 2.0]
+            
+            for priority in priorities:
+                fee_wei = int(gas_price * priority) * gas_limit
+                fee_eth = w3.from_wei(fee_wei, 'ether')
+                fee_usd = fee_eth * get_eth_price()
+                
+                results.append({
+                    'priority': 'Regular' if priority == 1.0 else 'Fast' if priority == 1.5 else 'Instant',
+                    'fee_eth': f"{fee_eth:.6f}",
+                    'fee_usd': f"${fee_usd:.2f}",
+                    'token_fee': f"${(fee_usd / usdc_amount * 100):.4f}%",
+                    'time_estimate': '5 min' if priority == 2.0 else '3 min' if priority == 1.5 else '10 min'
+                })
+            
+            return render_template('results.html', results=results, crypto_type='USDC')
+            
+        except Exception as e:
+            logger.error(f"Error processing request: {str(e)}")
+            flash(f"An error occurred: {str(e)}")
+    
+    return render_template('index.html', form=form)
 
 @app.route('/api/whale-transactions')
 def get_whale_transactions():
-    global whale_tracker, transaction_queue
     transactions = []
-    
     try:
-        # Get all available transactions from the queue
         while not transaction_queue.empty():
             tx = transaction_queue.get_nowait()
             transactions.append(tx)
-        
         return jsonify(transactions)
     except Exception as e:
         logger.error(f"Error getting whale transactions: {e}")
@@ -287,7 +303,6 @@ def whale_watch():
         return render_template('index.html', form=PredictionForm())
 
 def get_eth_price():
-    """Fetch current ETH price in USD"""
     try:
         response = requests.get('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd')
         return response.json()['ethereum']['usd']
