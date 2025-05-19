@@ -232,14 +232,19 @@ def predict_usdt():
 
 @app.route('/api/whale-transactions')
 def get_whale_transactions():
+    global whale_tracker, transaction_queue
     transactions = []
+    
     try:
+        # Get all available transactions from the queue
         while not transaction_queue.empty():
             tx = transaction_queue.get_nowait()
             transactions.append(tx)
+        
+        return jsonify(transactions)
     except Exception as e:
         logger.error(f"Error getting whale transactions: {e}")
-    return jsonify(transactions)
+        return jsonify([])
 
 @app.route('/whale_watch', methods=['POST'])
 def whale_watch():
@@ -254,27 +259,32 @@ def whale_watch():
             def track_transactions():
                 while True:
                     try:
-                        transactions = whale_tracker.get_latest_transactions()
-                        for tx in transactions:
-                            if not transaction_queue.full():
-                                transaction_queue.put(tx)
-                            else:
-                                # Remove oldest transaction if queue is full
-                                transaction_queue.get()
-                                transaction_queue.put(tx)
+                        current_block = whale_tracker.get_latest_block()
+                        if current_block:
+                            transactions = whale_tracker.get_block_transactions(current_block)
+                            for tx in transactions:
+                                if whale_tracker.is_whale_transaction(tx):
+                                    processed_tx = whale_tracker.process_transaction(tx)
+                                    if processed_tx and not transaction_queue.full():
+                                        transaction_queue.put(processed_tx)
+                        time.sleep(30)  # Wait 30 seconds before next check
                     except Exception as e:
-                        logger.error(f"Error tracking transactions: {e}")
-                    time.sleep(30)  # Check every 30 seconds
+                        logger.error(f"Error in transaction tracking: {e}")
+                        time.sleep(30)
             
             # Start tracking in background thread
             thread = threading.Thread(target=track_transactions, daemon=True)
             thread.start()
+            flash('Whale watch started successfully!')
+        else:
+            flash('Whale watch is already running')
             
-        return jsonify({"status": "success", "message": "Whale watch started"})
+        return render_template('index.html', form=PredictionForm())
         
     except Exception as e:
-        logger.error(f"Error in whale watch: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        logger.error(f"Error starting whale watch: {e}")
+        flash(f"Error starting whale watch: {str(e)}")
+        return render_template('index.html', form=PredictionForm())
 
 def get_eth_price():
     """Fetch current ETH price in USD"""
