@@ -2,6 +2,7 @@ from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 import os
 from queue import Queue
+from Prydict.models import init_db
 
 # Initialize queue for whale tracking
 transaction_queue = Queue(maxsize=100)
@@ -9,10 +10,20 @@ whale_tracker = None
 
 def create_app():
     app = Flask(__name__)
+    
+    # Configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+        'DATABASE_URL', 
+        'sqlite:////' + os.path.join(app.root_path, 'prydict.db')
+    )
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # Initialize CSRF protection
     csrf = CSRFProtect(app)
+    
+    # Initialize database
+    init_db(app)
     
     # Import routes after app creation to avoid circular imports
     from Prydict import routes
