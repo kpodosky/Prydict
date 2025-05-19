@@ -48,7 +48,14 @@ class EntityAddress(Base):
     transaction_count = Column(Integer, default=0)
 
 def init_db(app):
-    """Initialize the database"""
-    engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+
+    """Initialize the database with PostgreSQL support for Render"""
+    database_url = app.config['SQLALCHEMY_DATABASE_URI']
+    
+    # Handle PostgreSQL requirement on Render
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    
+    engine = create_engine(database_url)
     Base.metadata.create_all(engine)
     return engine
