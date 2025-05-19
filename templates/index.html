@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>BTC Fee Predictor</title>
+    <title>Prydict</title>
     <style>
         html, body {
             height: 100%;
@@ -153,7 +153,7 @@
         }
 
         footer {
-            margin-top: 2rem;
+            margin-top: 10rem;
             color: rgba(255, 255, 255, 0.6);
             font-size: 0.9rem;
             text-align: center;
@@ -308,7 +308,7 @@
 <body>
     <div class="container">
         <div class="brand">Prydict</div>
-        <h1>Cryptocurrency Fee Optimizer</h1>
+        <h2>Fee Optimizer and Mainnet tracker</h2>
         
         <div class="tabs">
             <button class="tab-button active" data-tab="btc">Bitcoin</button>
@@ -426,25 +426,29 @@
 
         function createTransactionCard(transaction) {
             const card = document.createElement('div');
-            card.className = `transaction-card ${transaction.tx_type.toLowerCase()}`;
+            card.className = `transaction-card ${transaction.tx_type}`;
+            
+            const amount = parseFloat(transaction.btc_volume);
+            const amountClass = amount >= 1000 ? 'mega-whale' : 'whale';
             
             card.innerHTML = `
                 <div class="transaction-header">
-                    <span class="transaction-amount">${transaction.btc_volume} BTC</span>
+                    <span class="transaction-amount ${amountClass}">🐋 ${transaction.btc_volume} BTC</span>
                     <span class="transaction-time">${transaction.timestamp}</span>
                 </div>
                 <div class="transaction-addresses">
-                    <div>
-                        <span class="address-label">From: ${transaction.from_entity || 'Unknown'}</span>
+                    <div class="from-address">
+                        <span class="address-label">From: ${transaction.from_entity}</span>
                         <div class="transaction-details">${transaction.sender}</div>
                     </div>
-                    <div>
-                        <span class="address-label">To: ${transaction.to_entity || 'Unknown'}</span>
+                    <div class="to-address">
+                        <span class="address-label">To: ${transaction.to_entity}</span>
                         <div class="transaction-details">${transaction.receiver}</div>
                     </div>
                 </div>
-                <div class="transaction-details">
-                    Fee: ${transaction.fee_btc} BTC | Hash: ${transaction.transaction_hash.slice(0, 16)}...
+                <div class="transaction-info">
+                    <span class="tx-type ${transaction.tx_type}">${transaction.tx_type.toUpperCase()}</span>
+                    <span class="tx-fee">Fee: ${transaction.fee_btc} BTC</span>
                 </div>
             `;
             
@@ -477,11 +481,15 @@
                 });
         }
 
+        // Update the whale feed every 30 seconds
+        setInterval(updateWhaleFeed, 30000);
+
+        // Initial load
+        updateWhaleFeed();
+
         // Start the feed when whale tab is active
         document.querySelector('[data-tab="whale"]').addEventListener('click', () => {
             updateWhaleFeed();
-            // Update every 30 seconds
-            setInterval(updateWhaleFeed, 30000);
         });
     </script>
 </body>

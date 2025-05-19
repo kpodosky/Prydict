@@ -19,14 +19,13 @@
             color: #f7931a;
             font-size: 3.5rem;
             font-weight: bold;
-            margin-bottom: 0.5rem;
+            margin-bottom: 2rem;
         }
 
         .results-container {
             background: rgba(255, 255, 255, 0.1);
             padding: 2rem;
             border-radius: 12px;
-            margin: 2rem 0;
             width: 100%;
             max-width: 600px;
             backdrop-filter: blur(10px);
@@ -37,10 +36,6 @@
             padding: 1.5rem;
             margin-bottom: 1rem;
             animation: fadeIn 0.5s ease-out;
-        }
-
-        .prediction-item:last-child {
-            border-bottom: none;
         }
 
         .prediction-time {
@@ -82,23 +77,18 @@
     <div class="brand">Prydict</div>
     
     <div class="results-container">
-        <h2>{{ crypto_type if crypto_type else 'BTC' }} Fee Predictions</h2>
+        <h2>{{ crypto_type }} Fee Predictions</h2>
         
         {% for result in results %}
             <div class="prediction-item">
-                {% if crypto_type == 'ETH' %}
+                {% if crypto_type == 'ETH' or crypto_type in ['USDC', 'USDT'] %}
                     <h3 class="prediction-time">{{ result.priority }}</h3>
                     <div class="fee-details">
                         <p>Gas Fee: {{ result.fee_eth }} ETH</p>
                         <p>USD Value: {{ result.fee_usd }}</p>
-                        <p>Estimated Time: {{ result.time_estimate }}</p>
-                    </div>
-                {% elif crypto_type in ['USDC', 'USDT'] %}
-                    <h3 class="prediction-time">{{ result.priority }}</h3>
-                    <div class="fee-details">
-                        <p>Gas Fee: {{ result.fee_eth }} ETH</p>
-                        <p>USD Value: {{ result.fee_usd }}</p>
-                        <p>Token Transfer Cost: {{ result.token_fee }}</p>
+                        {% if result.token_fee %}
+                            <p>Token Fee: {{ result.token_fee }}</p>
+                        {% endif %}
                         <p>Estimated Time: {{ result.time_estimate }}</p>
                     </div>
                 {% else %}
@@ -114,15 +104,5 @@
     </div>
 
     <a href="{{ url_for('index') }}" class="back-button">Make Another Prediction</a>
-    
-
-
-
-
-
-
-</html></body>    </footer>        Powered by Kilanko Paul    <footer>    <footer>
-        Powered by Kilanko Paul
-    </footer>
 </body>
 </html>
