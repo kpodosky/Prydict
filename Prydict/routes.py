@@ -2,7 +2,9 @@ import logging
 import pandas as pd
 import numpy as np
 import requests
-from flask import Flask, render_template, request, flash, jsonify
+from flask import render_template, request, flash, jsonify
+from Prydict import app, transaction_queue, whale_tracker
+from Prydict.forms import PredictionForm
 from flask_wtf.csrf import CSRFProtect
 from flask_wtf import FlaskForm
 from wtforms import FloatField, SelectField
@@ -20,38 +22,7 @@ import time
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Initialize Flask app
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-here'
 csrf = CSRFProtect(app)
-
-transaction_queue = Queue(maxsize=100)
-whale_tracker = None
-
-class PredictionForm(FlaskForm):
-    btc_amount = FloatField('BTC Amount', 
-        validators=[
-            DataRequired(message="Please enter a BTC amount"),
-            NumberRange(min=0.00000001, message="Amount must be positive")
-        ])
-    tx_size = SelectField('Transaction Size',
-        choices=[
-            ('simple', 'Simple (250 bytes)'),
-            ('average', 'Average (500 bytes)'),
-            ('complex', 'Complex (1000 bytes)')
-        ],
-        validators=[DataRequired()]
-    )
-    eth_amount = FloatField('ETH Amount')
-    gas_limit = SelectField('Gas Limit',
-        choices=[
-            ('21000', 'Basic Transfer (21,000)'),
-            ('65000', 'Token Transfer (~65,000)'),
-            ('200000', 'Smart Contract (~200,000)')
-        ]
-    )
-    usdc_amount = FloatField('USDC Amount')
-    usdt_amount = FloatField('USDT Amount')
 
 class FeePredictor:
     def __init__(self):
@@ -132,7 +103,6 @@ class FeePredictor:
             predictions.append((timestamp, fee))
         return sorted(predictions, key=lambda x: x[1])[:5]
 
-@app.route('/predict_btc', methods=['POST'])
 def predict_btc():
     form = PredictionForm()
     if form.validate_on_submit():
@@ -178,7 +148,6 @@ def predict_btc():
     
     return render_template('index.html', form=form)
 
-@app.route('/predict_eth', methods=['POST'])
 def predict_eth():
     form = PredictionForm()
     if form.validate_on_submit():
@@ -215,7 +184,6 @@ def predict_eth():
     
     return render_template('index.html', form=form)
 
-@app.route('/predict_usdc', methods=['POST'])
 def predict_usdc():
     form = PredictionForm()
     if form.validate_on_submit():
@@ -250,7 +218,6 @@ def predict_usdc():
     
     return render_template('index.html', form=form)
 
-@app.route('/api/whale-transactions')
 def get_whale_transactions():
     transactions = []
     try:
@@ -262,7 +229,6 @@ def get_whale_transactions():
         logger.error(f"Error getting whale transactions: {e}")
         return jsonify([])
 
-@app.route('/whale_watch', methods=['POST'])
 def whale_watch():
     global whale_tracker
     
@@ -309,6 +275,3 @@ def get_eth_price():
     except Exception as e:
         logger.error(f"Error fetching ETH price: {e}")
         return 0
-
-if __name__ == '__main__':
-    app.run(debug=True)
