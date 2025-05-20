@@ -1,6 +1,6 @@
+import os
 from flask import Flask
 from flask_wtf.csrf import CSRFProtect
-
 from queue import Queue
 from Prydict.config import config
 from Prydict.models import init_db
@@ -10,6 +10,7 @@ transaction_queue = Queue(maxsize=100)
 whale_tracker = None
 
 def create_app(config_name='default'):
+    """Create and configure the Flask application"""
     app = Flask(__name__)
     
     # Load config
