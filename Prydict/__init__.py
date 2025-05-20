@@ -26,7 +26,7 @@ def create_app(config_name='default'):
     from Prydict import routes
     
     # Register routes
-    app.add_url_rule('/', 'index', routes.index)
+    app.add_url_rule('/', 'index', routes.index, methods=['GET'])
     app.add_url_rule('/predict_btc', 'predict_btc', routes.predict_btc, methods=['POST'])
     app.add_url_rule('/predict_eth', 'predict_eth', routes.predict_eth, methods=['POST'])
     app.add_url_rule('/predict_usdc', 'predict_usdc', routes.predict_usdc, methods=['POST'])
