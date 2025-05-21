@@ -4,61 +4,43 @@ import (
     "html/template"
     "log"
     "net/http"
+    "os"
 )
 
-type PageData struct {
-    Title string
-    Form  PredictionForm
-}
-
-type PredictionForm struct {
-    BTCAmount  float64
-    TxSize     string
-    ETHAmount  float64
-    GasLimit   string
-    USDCAmount float64
-    USDTAmount float64
-}
-
 func main() {
+    // Create a new mux for routing
+    mux := http.NewServeMux()
+    
     // Serve static files
-    fs := http.FileServer(http.Dir("static"))
-    http.Handle("/static/", http.StripPrefix("/static/", fs))
-
-    // Serve static files
-    fs = http.FileServer(http.Dir("static"))
-    http.Handle("/static/", http.StripPrefix("/static/", fs))
-
-    // Routes
-    http.HandleFunc("/", handleHome)
-    http.HandleFunc("/predict/btc", handleBTCPrediction)
-    http.HandleFunc("/predict/eth", handleETHPrediction)
-
-    log.Println("Server starting on http://localhost:8080")
-    log.Fatal(http.ListenAndServe(":8080", nil))
+    fileServer := http.FileServer(http.Dir("static"))
+    mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
+    
+    // Register route handlers
+    mux.HandleFunc("/", handleHome)
+    mux.HandleFunc("/predict", handlePredict)
+    
+    // Get port from environment variable
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
+    
+    // Start server with our mux
+    log.Printf("Starting server on port %s", port)
+    log.Fatal(http.ListenAndServe(":"+port, mux))
 }
 
 func handleHome(w http.ResponseWriter, r *http.Request) {
-    tmpl := template.Must(template.ParseFiles("templates/layout.html"))
-    data := PageData{
-        Title: "Prydict - Crypto Fee Predictor",
-        Form:  PredictionForm{},
-    }
-    tmpl.Execute(w, data)
+    tmpl := template.Must(template.ParseFiles("templates/index.html"))
+    tmpl.Execute(w, nil)
 }
 
-func handleBTCPrediction(w http.ResponseWriter, r *http.Request) {
+func handlePredict(w http.ResponseWriter, r *http.Request) {
     if r.Method != http.MethodPost {
-        http.Redirect(w, r, "/", http.StatusSeeOther)
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
         return
     }
-    // TODO: Implement BTC prediction logic
-}
-
-func handleETHPrediction(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodPost {
-        http.Redirect(w, r, "/", http.StatusSeeOther)
-        return
-    }
-    // TODO: Implement ETH prediction logic
+    
+    w.Header().Set("Content-Type", "application/json")
+    w.Write([]byte(`{"fee": "0.0001 BTC", "time": "10 minutes"}`))
 }
