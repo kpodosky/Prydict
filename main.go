@@ -89,6 +89,7 @@ func handleWhaleStop(w http.ResponseWriter, r *http.Request) {
 func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     
+
     // Use the working directory where the script is located
     wd, err := os.Getwd()
     if err != nil {
