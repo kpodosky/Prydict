@@ -96,12 +96,27 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
         return
     }
     
-    // Get output from the running Bitcoin tracker
-    output, err := exec.Command("python3", "-c", "from report_bitcoin import BitcoinWhaleTracker; print(BitcoinWhaleTracker().get_transactions())").Output()
+    // Update path to match your file name with space
+    cmd := exec.Command("python3", "report bitcoin.py")
+    cmd.Dir = "/home/kilanko/APPs/prydict" // Set working directory
+    
+    // Capture both stdout and stderr
+    output, err := cmd.CombinedOutput()
     if err != nil {
+        log.Printf("Error running Bitcoin tracker: %v\nOutput: %s", err, output)
         http.Error(w, "Failed to get transactions", http.StatusInternalServerError)
         return
     }
     
-    w.Write(output)
+    // Format the output as JSON
+    var transactions interface{}
+    if err := json.Unmarshal(output, &transactions); err != nil {
+        log.Printf("Error parsing tracker output: %v\nRaw output: %s", err, output)
+        http.Error(w, "Invalid tracker output", http.StatusInternalServerError)
+        return
+    }
+    
+    json.NewEncoder(w).Encode(map[string]interface{}{
+        "transactions": transactions,
+    })
 }
