@@ -214,13 +214,18 @@
         }
 
         .whale-alert {
-            border-left: 3px solid #f7931a;
-            padding: 15px;
-            margin-bottom: 15px;
             font-family: monospace;
             white-space: pre-wrap;
             background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid;
         }
+
+        .whale-alert.internal { border-color: #ffc107; }
+        .whale-alert.withdrawal { border-color: #dc3545; }
+        .whale-alert.deposit { border-color: #28a745; }
+        .whale-alert.unknown { border-color: #17a2b8; }
     </style>
 </head>
 <body>
