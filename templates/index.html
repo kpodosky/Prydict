@@ -29,6 +29,35 @@
             text-align: center;
             margin-bottom: 2rem;
         }
+        .subtitle {
+            text-align: center;
+            color: #f0f0f0;
+            margin-bottom: 2rem;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .tab-button.active {
+            background: #f7931a;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
         form {
             background: rgba(255, 255, 255, 0.1);
             padding: 2rem;
@@ -65,37 +94,128 @@
             border-radius: 4px;
             display: none;
         }
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .result-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 4px;
+        }
+        .footer {
+            text-align: center;
+            padding: 1rem;
+            color: #f0f0f0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="brand">Prydict</div>
-        <form id="predictionForm">
-            <label>
-                Amount:
-                <input type="number" name="amount" step="0.00000001" required>
-            </label>
-            <label>
-                Cryptocurrency:
-                <select name="coinType">
-                    <option value="btc">Bitcoin</option>
-                    <option value="eth">Ethereum</option>
-                    <option value="usdc">USDC</option>
-                    <option value="usdt">USDT</option>
-                </select>
-            </label>
-            <label>
-                Transaction Size:
-                <select name="txSize">
-                    <option value="small">Small</option>
-                    <option value="medium">Medium</option>
-                    <option value="large">Large</option>
-                </select>
-            </label>
-            <button type="submit">Predict Fee</button>
-        </form>
-        <div id="result"></div>
+        <div class="subtitle">Predict Fees and Follow Bitcoin Transactions</div>
+
+        <div class="tabs">
+            <button class="tab-button active" data-tab="bitcoin">Bitcoin</button>
+            <button class="tab-button" data-tab="ethereum">Ethereum</button>
+            <button class="tab-button" data-tab="usdt">USDT</button>
+            <button class="tab-button" data-tab="usdc">USDC</button>
+            <button class="tab-button" data-tab="whale">Whale Watch</button>
+        </div>
+
+        <div id="bitcoin" class="tab-content active">
+            <form class="prediction-form">
+                <label>Amount (BTC):
+                    <input type="number" name="amount" step="0.00000001" required>
+                </label>
+                <label>Transaction Priority:
+                    <select name="priority">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </label>
+                <button type="submit">Predict Fee</button>
+            </form>
+        </div>
+
+        <div id="ethereum" class="tab-content">
+            <form class="prediction-form">
+                <label>Amount (ETH):
+                    <input type="number" name="amount" step="0.000001" required>
+                </label>
+                <label>Gas Priority:
+                    <select name="priority">
+                        <option value="slow">Slow</option>
+                        <option value="standard">Standard</option>
+                        <option value="fast">Fast</option>
+                    </select>
+                </label>
+                <button type="submit">Predict Fee</button>
+            </form>
+        </div>
+
+        <div id="whale" class="tab-content">
+            <form class="prediction-form">
+                <label>Minimum Transaction Size:
+                    <input type="number" name="minAmount" required>
+                </label>
+                <label>Cryptocurrency:
+                    <select name="currency">
+                        <option value="btc">Bitcoin</option>
+                        <option value="eth">Ethereum</option>
+                        <option value="usdt">USDT</option>
+                        <option value="usdc">USDC</option>
+                    </select>
+                </label>
+                <button type="submit">Track Whales</button>
+            </form>
+        </div>
+
+        <div id="result">
+            <div class="result-grid">
+                <div class="result-item">
+                    <strong>Estimated Fee:</strong>
+                    <span class="fee"></span>
+                </div>
+                <div class="result-item">
+                    <strong>Expected Time:</strong>
+                    <span class="time"></span>
+                </div>
+                <div class="result-item">
+                    <strong>Network Load:</strong>
+                    <span class="network"></span>
+                </div>
+                <div class="result-item">
+                    <strong>Success Probability:</strong>
+                    <span class="probability"></span>
+                </div>
+                <div class="result-item">
+                    <strong>Current Block Height:</strong>
+                    <span class="block"></span>
+                </div>
+                <div class="result-item">
+                    <strong>Average Confirmation Time:</strong>
+                    <span class="confirmation"></span>
+                </div>
+                <div class="result-item">
+                    <strong>Market Impact:</strong>
+                    <span class="impact"></span>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <footer class="footer">
+        Created by Kilanko Paul
+    </footer>
+
     <script src="/static/js/main.js"></script>
 </body>
 </html>
