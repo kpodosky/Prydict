@@ -13,6 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             tab.classList.add('active');
             document.getElementById(target).classList.add('active');
+            
+            // Reset result display when switching tabs
+            const result = document.getElementById('result');
+            result.style.display = 'none';
         });
     });
 
