@@ -108,54 +108,32 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const response = await fetch('/whale-watch/transactions');
-            const transactions = await response.json();
+            const data = await response.json();
             
-            if (transactions.length > 0) {
-                const container = document.querySelector('.whale-transactions');
+            const container = document.querySelector('.whale-transactions');
+            
+            data.transactions.forEach(tx => {
+                const alert = document.createElement('div');
+                alert.className = 'whale-alert';
+                alert.innerHTML = `
+================================================================================
+🚨 Bitcoin ${tx.type} Alert! ${tx.timestamp}
+Hash: ${tx.hash}
+${tx.amount} BTC        Fee: ${tx.fee} BTC
+From: ${tx.from_address} (${tx.from_label})
+    History: ${tx.from_history}
+To: ${tx.to_address} (${tx.to_label})
+    History: ${tx.to_history}
+================================================================================`;
                 
-                transactions.forEach(tx => {
-                    const txElement = document.createElement('div');
-                    txElement.className = 'whale-transaction';
-                    
-                    // Determine transaction type color
-                    const typeColors = {
-                        'DEPOSIT': '#28a745',
-                        'WITHDRAWAL': '#dc3545',
-                        'INTERNAL TRANSFER': '#ffc107',
-                        'UNKNOWN TRANSFER': '#17a2b8'
-                    };
-                    
-                    txElement.innerHTML = `
-                        <div class="tx-header" style="color: ${typeColors[tx.tx_type] || '#17a2b8'}">
-                            🚨 Bitcoin ${tx.tx_type} Alert! ${tx.timestamp}
-                        </div>
-                        <div class="tx-hash">Hash: ${tx.transaction_hash}</div>
-                        <div class="tx-amount">
-                            ${tx.btc_volume} BTC        Fee: ${tx.fee_btc} BTC
-                        </div>
-                        <div class="tx-from">
-                            From: ${tx.sender} ${tx.from_entity ? `(${tx.from_entity.name.toUpperCase()} ${tx.from_entity.type})` : ''}
-                            <div class="tx-history">
-                                History: [↑${tx.sender_stats.sent_count}|↓${tx.sender_stats.received_count}] 
-                                Total: ↑${tx.sender_stats.total_sent}|↓${tx.sender_stats.total_received} BTC
-                            </div>
-                        </div>
-                        <div class="tx-to">
-                            To: ${tx.receiver} ${tx.to_entity ? `(${tx.to_entity.name.toUpperCase()} ${tx.to_entity.type})` : ''}
-                            <div class="tx-history">
-                                History: [↑${tx.receiver_stats.sent_count}|↓${tx.receiver_stats.received_count}] 
-                                Total: ↑${tx.receiver_stats.total_sent}|↓${tx.receiver_stats.total_received} BTC
-                            </div>
-                        </div>
-                        <div class="tx-separator"></div>
-                    `;
-                    
-                    container.insertBefore(txElement, container.firstChild);
-                    
-                    // Keep max 50 transactions in view
-                    if (container.children.length > 50) {
-                        container.removeChild(container.lastChild);
-                    }
+                container.insertBefore(alert, container.firstChild);
+            });
+            
+            // Keep only last 50 transactions
+            const alerts = container.querySelectorAll('.whale-alert');
+            if (alerts.length > 50) {
+                alerts.forEach((alert, index) => {
+                    if (index >= 50) alert.remove();
                 });
             }
         } catch (error) {
