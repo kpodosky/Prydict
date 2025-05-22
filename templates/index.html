@@ -55,6 +55,12 @@
         .tab-button.active {
             background: #f7931a;
         }
+        .tab-button[data-tab="whale"].active {
+            background: #28a745;
+        }
+        .tab-button.active:not([data-tab="whale"]) {
+            background: #f7931a;
+        }
         .tab-content {
             display: none;
         }
@@ -356,10 +362,9 @@
             <div class="whale-container">
                 <div class="whale-transactions">
                     <div class="whale-header">
-                        Tracking Bitcoin transactions over 100 BTC...
+                        Tracking transactions over 100
                         Waiting for new blocks...
                     </div>
-                    <!-- Live transactions will be inserted here -->
                 </div>
             </div>
         </div>
