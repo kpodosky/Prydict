@@ -114,10 +114,14 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
                 "from_address": "3FaA4dJuuvJFyUHbqHLkZKJcuDPugvG3zE",
                 "from_label": "Coinbase",
                 "to_address": "1NDyJtNTjmwk5xPNhjgAMu4HDHigtobu1s",
-                "to_label": "Gemini"
+                "to_label": "Gemini",
             },
         },
     }
     
-    json.NewEncoder(w).Encode(dummyData)
+    if err := json.NewEncoder(w).Encode(dummyData); err != nil {
+        log.Printf("Error encoding response: %v", err)
+        http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+        return
+    }
 }
