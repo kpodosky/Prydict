@@ -89,34 +89,35 @@ func handleWhaleStop(w http.ResponseWriter, r *http.Request) {
 func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     
-    if !trackerRunning {
-        json.NewEncoder(w).Encode(map[string]interface{}{
-            "transactions": []interface{}{},
-        })
-        return
-    }
+    // Using correct filename with quotes to handle space
+    cmd := exec.Command("python3", "./report bitcoin.py")
+    cmd.Dir = "/home/kilanko/APPs/prydict"
     
-    // Update path to match your file name with space
-    cmd := exec.Command("python3", "report bitcoin.py")
-    cmd.Dir = "/home/kilanko/APPs/prydict" // Set working directory
-    
-    // Capture both stdout and stderr
     output, err := cmd.CombinedOutput()
     if err != nil {
-        log.Printf("Error running Bitcoin tracker: %v\nOutput: %s", err, output)
+        log.Printf("Error executing Python script: %v\nOutput: %s", err, string(output))
         http.Error(w, "Failed to get transactions", http.StatusInternalServerError)
         return
     }
-    
-    // Format the output as JSON
-    var transactions interface{}
-    if err := json.Unmarshal(output, &transactions); err != nil {
-        log.Printf("Error parsing tracker output: %v\nRaw output: %s", err, output)
-        http.Error(w, "Invalid tracker output", http.StatusInternalServerError)
-        return
+
+    // For debugging - log the raw output
+    log.Printf("Raw Python output: %s", string(output))
+
+    // Send dummy data for testing
+    dummyData := map[string]interface{}{
+        "transactions": []map[string]string{
+            {
+                "type": "INTERNAL TRANSFER",
+                "timestamp": "2025-05-22 14:30:25",
+                "hash": "0x7a23c98ff44b321",
+                "amount": "235.45 BTC",
+                "from_address": "3FaA4dJuuvJFyUHbqHLkZKJcuDPugvG3zE",
+                "from_label": "Coinbase",
+                "to_address": "1NDyJtNTjmwk5xPNhjgAMu4HDHigtobu1s",
+                "to_label": "Gemini"
+            },
+        },
     }
     
-    json.NewEncoder(w).Encode(map[string]interface{}{
-        "transactions": transactions,
-    })
+    json.NewEncoder(w).Encode(dummyData)
 }
