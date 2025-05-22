@@ -6,7 +6,11 @@ import (
     "log"
     "net/http"
     "os"
+    "os/exec"
 )
+
+var bitcoinTracker *exec.Cmd
+var trackerRunning bool
 
 func main() {
     // Create a new mux for routing
@@ -55,8 +59,16 @@ func handleWhaleStart(w http.ResponseWriter, r *http.Request) {
         return
     }
     
-    // Initialize whale tracker if not already running
-    tracker.Start()
+    if !trackerRunning {
+        bitcoinTracker = exec.Command("python3", "report bitcoin.py")
+        err := bitcoinTracker.Start()
+        if err != nil {
+            http.Error(w, "Failed to start tracker", http.StatusInternalServerError)
+            return
+        }
+        trackerRunning = true
+    }
+    
     w.WriteHeader(http.StatusOK)
 }
 
@@ -66,13 +78,30 @@ func handleWhaleStop(w http.ResponseWriter, r *http.Request) {
         return
     }
     
-    tracker.Stop()
+    if trackerRunning && bitcoinTracker != nil {
+        bitcoinTracker.Process.Kill()
+        trackerRunning = false
+    }
+    
     w.WriteHeader(http.StatusOK)
 }
 
 func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(map[string]interface{}{
-        "transactions": tracker.GetTransactions(),
-    })
+    
+    if !trackerRunning {
+        json.NewEncoder(w).Encode(map[string]interface{}{
+            "transactions": []interface{}{},
+        })
+        return
+    }
+    
+    // Get output from the running Bitcoin tracker
+    output, err := exec.Command("python3", "-c", "from report_bitcoin import BitcoinWhaleTracker; print(BitcoinWhaleTracker().get_transactions())").Output()
+    if err != nil {
+        http.Error(w, "Failed to get transactions", http.StatusInternalServerError)
+        return
+    }
+    
+    w.Write(output)
 }
