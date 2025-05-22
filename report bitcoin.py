@@ -5,6 +5,29 @@ import os
 from datetime import datetime
 from collections import defaultdict
 
+# Add known addresses mapping at the top of the file
+KNOWN_ENTITIES = {
+    "3FaA4dJuuvJFyUHbqHLkZKJcuDPugvG3zE": "BINANCE",
+    "1NDyJtNTjmwk5xPNhjgAMu4HDHigtobu1s": "GEMINI",
+    "3QuXKHoJqNEMXrXphX4MqzaT6qpHGxk6Ku": "COINBASE",
+    "34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo": "WINTERMUTE",
+    "3D8qAoMkZ8F1b42btt2Mn5TyN7sWfa434A": "BITFINEX",
+    "1P5ZEDWTKTFGxQjZphgWPQUpe554WKDfHQ": "CRYPTO.COM",
+    "3LYJfcfHPXYJreMsASk2jkn69LWEYKzexb": "KRAKEN",
+    "3Kzh9qAqVWQhEsfQz7zEQL1EuSx5tyNLNS": "BITHUMB",
+    "1LQv2PNhDiVUgtBT7RQBJ8arUXauEW3WHx": "HUOBI",
+    "385cR5DM96n1HvBDMzLHPYcw89fZAXULJP": "OKEX"
+}
+
+# Add BTC price function
+def get_btc_price():
+    try:
+        import requests
+        response = requests.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd')
+        return float(response.json()['bitcoin']['usd'])
+    except:
+        return 30000  # Fallback price if API fails
+
 class BitcoinWhaleTracker:
     def __init__(self, min_btc=100):
         self.base_url = "https://blockchain.info"
@@ -339,6 +362,23 @@ class BitcoinWhaleTracker:
                 'to_entity': None
             }
 
+    def get_market_sentiment(self, tx_type, amount):
+        """Analyze market sentiment based on whale movement"""
+        if amount > 10000:  # Super whale
+            magnitude = "MASSIVE"
+        elif amount > 1000:
+            magnitude = "LARGE"
+        else:
+            magnitude = "SIGNIFICANT"
+            
+        sentiments = {
+            'DEPOSIT': f"🟢 {magnitude} exchange inflow - Potential selling pressure",
+            'WITHDRAWAL': f"🟡 {magnitude} exchange outflow - Possible accumulation",
+            'INTERNAL TRANSFER': f"⚪ {magnitude} internal movement - Exchange rebalancing",
+            'UNKNOWN TRANSFER': f"🔵 {magnitude} unknown movement - Monitor closely"
+        }
+        return sentiments.get(tx_type, "")
+
     def process_transaction(self, tx):
         """Process a single transaction and return if it meets criteria"""
         # Calculate total input value
@@ -395,22 +435,45 @@ class BitcoinWhaleTracker:
             'UNKNOWN TRANSFER': '\033[94m'   # Blue
         }.get(tx['tx_type'], '\033[94m')
         
-        print("\n" + "=" * 120)
-        print(f"{color_code}🚨 Bitcoin {tx['tx_type']} Alert! {tx['timestamp']}")
+        # Format the USD values
+        btc_usd = float(tx['btc_volume']) * get_btc_price()
+        fee_usd = float(tx['fee_btc']) * get_btc_price()
         
-        sender_label = self.get_address_label(tx['sender'])
-        receiver_label = self.get_address_label(tx['receiver'])
-        
-        print(f"Hash: {tx['transaction_hash']}")
-        print(f"{tx['btc_volume']} BTC", end='')
-        print(f"        Fee: {tx['fee_btc']} BTC\033[0m")
-        
-        print(f"From: {tx['sender']} {sender_label}")
-        print(f"    History: {self.get_address_summary(tx['sender'])}")
-        print(f"To: {tx['receiver']} {receiver_label}")
-        print(f"    History: {self.get_address_summary(tx['receiver'])}")
-        
-        print("=" * 120 + "\n")
+        # Build the structured output without borders
+        output = f"""
+{color_code}🚨 Bitcoin {tx['tx_type']} Alert! {tx['timestamp']}
+
+Transaction Details:
+------------------
+Hash:   {tx['transaction_hash']}
+Amount: {tx['btc_volume']} BTC     (${btc_usd:,.2f})
+Fee:    {tx['fee_btc']} BTC     (${fee_usd:,.2f})\033[0m
+
+Address Information:
+------------------
+From:    {tx['sender']} ({KNOWN_ENTITIES.get(tx['sender'], 'UNKNOWN')})
+History: {self.get_address_summary(tx['sender'])}
+
+To:      {tx['receiver']} ({KNOWN_ENTITIES.get(tx['receiver'], 'UNKNOWN')})
+History: {self.get_address_summary(tx['receiver'])}
+
+Market Impact: {self.estimate_price_impact(tx['btc_volume'])}
+Analysis: {self.get_market_sentiment(tx['tx_type'], tx['btc_volume'])}
+"""
+        print(output)
+
+    def estimate_price_impact(self, btc_amount):
+        """Estimate market impact of large transactions"""
+        try:
+            # Get 24h BTC volume from CoinGecko
+            response = requests.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_vol=true')
+            volume_24h = float(response.json()['bitcoin']['usd_24h_vol'])
+            
+            # Calculate impact as percentage of 24h volume
+            impact = (btc_amount * get_btc_price() / volume_24h) * 100
+            return f"≈{impact:.2f}% of 24h volume"
+        except:
+            return "Impact calculation pending..."
 
     def monitor_transactions(self):
         """Main method to track whale transactions"""
