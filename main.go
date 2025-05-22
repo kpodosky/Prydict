@@ -89,8 +89,6 @@ func handleWhaleStop(w http.ResponseWriter, r *http.Request) {
 func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     
-
-    // Use the working directory where the script is located
     wd, err := os.Getwd()
     if err != nil {
         log.Printf("Error getting working directory: %v", err)
@@ -98,11 +96,9 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
         return
     }
     
-    // Execute Python script with proper path
     cmd := exec.Command("python3", "report bitcoin.py")
     cmd.Dir = wd
     
-    // Get the output directly from the Python script
     output, err := cmd.CombinedOutput()
     if err != nil {
         log.Printf("Error executing Python script: %v\nOutput: %s", err, string(output))
@@ -110,6 +106,15 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Pass through the Python script output directly
-    w.Write(output)
+    // Create a response structure
+    response := map[string]interface{}{
+        "output": string(output),
+    }
+
+    // Encode the response as JSON
+    if err := json.NewEncoder(w).Encode(response); err != nil {
+        log.Printf("Error encoding response: %v", err)
+        http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+        return
+    }
 }
