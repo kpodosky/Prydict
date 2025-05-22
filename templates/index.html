@@ -133,6 +133,71 @@
             width: 100%;
             background: rgba(0, 0, 0, 0.3);
         }
+
+        .whale-container {
+            margin-top: 2rem;
+            max-height: 600px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+            display: none;
+        }
+
+        .whale-transaction {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid #f7931a;
+            animation: slideIn 0.3s ease-out;
+            font-family: monospace;
+        }
+
+        .tx-header {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .tx-hash {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tx-amount {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: #f7931a;
+        }
+
+        .tx-from, .tx-to {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .tx-history {
+            padding-left: 1rem;
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        .tx-separator {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 0.5rem 0;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -166,29 +231,11 @@
                 <div class="result-grid">
                     <div class="result-item"><strong>Estimated Fee:</strong> <span class="fee"></span></div>
                     <div class="result-item"><strong>Expected Time:</strong> <span class="time"></span></div>
-                    <div class="result-item"><strong>Network Load:</strong> <span class="network"></span></div>
-                    <div class="result-item"><strong>Success Probability:</strong> <span class="probability"></span></div>
-                    <div class="result-item"><strong>Current Block:</strong> <span class="block"></span></div>
-                    <div class="result-item"><strong>Confirmation Time:</strong> <span class="confirmation"></span></div>
-                    <div class="result-item"><strong>Market Impact:</strong> <span class="impact"></span></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="ethereum" class="tab-content">
-            <form class="prediction-form">
-                <label>Amount (ETH):
-                    <input type="number" name="amount" step="0.000001" required>
-                </label>
-                <label>Gas Priority:
-                    <select name="priority">
-                        <option value="slow">Slow</option>
-                        <option value="standard">Standard</option>
-                        <option value="fast">Fast</option>
-                    </select>
-                </label>
-                <button type="submit">Predict Fee</button>
-            </form>
+                        <option value="fast">Fast</option>rk Load:</strong> <span class="network"></span></div>
+                    </select>s="result-item"><strong>Success Probability:</strong> <span class="probability"></span></div>
+                </label> class="result-item"><strong>Current Block:</strong> <span class="block"></span></div>
+                <button type="submit">Predict Fee</button>rmation Time:</strong> <span class="confirmation"></span></div>
+            </form> <div class="result-item"><strong>Market Impact:</strong> <span class="impact"></span></div>
             <div class="result-section">
                 <div class="result-grid">
                     <div class="result-item"><strong>Gas Fee:</strong> <span class="fee"></span></div>
@@ -198,24 +245,24 @@
                     <div class="result-item"><strong>Block Number:</strong> <span class="block"></span></div>
                     <div class="result-item"><strong>Average Wait:</strong> <span class="confirmation"></span></div>
                     <div class="result-item"><strong>Price Impact:</strong> <span class="impact"></span></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="usdt" class="tab-content">
+                </div>>Gas Priority:
+            </div>  <select name="priority">
+        </div>          <option value="slow">Slow</option>
+                        <option value="standard">Standard</option>
+        <div id="usdt" class="tab-content">">Fast</option>
             <form class="prediction-form">
                 <label>Amount (USDT):
                     <input type="number" name="amount" step="0.01" required>
                 </label>
-                <label>Network:
+                <label>Network:section">
                     <select name="network">
-                        <option value="eth">Ethereum</option>
-                        <option value="trc">Tron</option>
-                        <option value="bsc">BSC</option>
-                    </select>
-                </label>
-                <button type="submit">Predict Fee</button>
-            </form>
+                        <option value="eth">Ethereum</option></strong> <span class="fee"></span></div>
+                        <option value="trc">Tron</option>saction Time:</strong> <span class="time"></span></div>
+                        <option value="bsc">BSC</option> Price:</strong> <span class="network"></span></div>
+                    </select>s="result-item"><strong>Success Rate:</strong> <span class="probability"></span></div>
+                </label> class="result-item"><strong>Block Number:</strong> <span class="block"></span></div>
+                <button type="submit">Predict Fee</button>ge Wait:</strong> <span class="confirmation"></span></div>
+            </form> <div class="result-item"><strong>Price Impact:</strong> <span class="impact"></span></div>
             <div class="result-section">
                 <div class="result-grid">
                     <div class="result-item"><strong>Transfer Fee:</strong> <span class="fee"></span></div>
@@ -225,24 +272,24 @@
                     <div class="result-item"><strong>Latest Block:</strong> <span class="block"></span></div>
                     <div class="result-item"><strong>Finality Time:</strong> <span class="confirmation"></span></div>
                     <div class="result-item"><strong>Liquidity Impact:</strong> <span class="impact"></span></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="usdc" class="tab-content">
+                </div>>Network:
+            </div>  <select name="network">
+        </div>          <option value="eth">Ethereum</option>
+                        <option value="trc">Tron</option>
+        <div id="usdc" class="tab-content">>BSC</option>
             <form class="prediction-form">
                 <label>Amount (USDC):
                     <input type="number" name="amount" step="0.01" required>
                 </label>
-                <label>Network:
+                <label>Network:section">
                     <select name="network">
-                        <option value="eth">Ethereum</option>
-                        <option value="sol">Solana</option>
-                        <option value="poly">Polygon</option>
-                    </select>
-                </label>
-                <button type="submit">Predict Fee</button>
-            </form>
+                        <option value="eth">Ethereum</option> Fee:</strong> <span class="fee"></span></div>
+                        <option value="sol">Solana</option>ted Time:</strong> <span class="time"></span></div>
+                        <option value="poly">Polygon</option>Status:</strong> <span class="network"></span></div>
+                    </select>s="result-item"><strong>Success Rate:</strong> <span class="probability"></span></div>
+                </label> class="result-item"><strong>Latest Block:</strong> <span class="block"></span></div>
+                <button type="submit">Predict Fee</button>ity Time:</strong> <span class="confirmation"></span></div>
+            </form> <div class="result-item"><strong>Liquidity Impact:</strong> <span class="impact"></span></div>
             <div class="result-section">
                 <div class="result-grid">
                     <div class="result-item"><strong>Transfer Fee:</strong> <span class="fee"></span></div>
@@ -252,50 +299,72 @@
                     <div class="result-item"><strong>Current Block:</strong> <span class="block"></span></div>
                     <div class="result-item"><strong>Settlement Time:</strong> <span class="confirmation"></span></div>
                     <div class="result-item"><strong>Market Impact:</strong> <span class="impact"></span></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="whale" class="tab-content">
+                </div>>Network:
+            </div>  <select name="network">
+        </div>          <option value="eth">Ethereum</option>
+                        <option value="sol">Solana</option>
+        <div id="whale" class="tab-content">>Polygon</option>
             <form class="prediction-form">
                 <label>Minimum Transaction Size:
                     <input type="number" name="minAmount" required>
                 </label>
-                <label>Cryptocurrency:
+                <label>Cryptocurrency:">
                     <select name="currency">
-                        <option value="btc">Bitcoin</option>
-                        <option value="eth">Ethereum</option>
-                        <option value="usdt">USDT</option>
-                        <option value="usdc">USDC</option>
-                    </select>
-                </label>
-                <button type="submit">Track Whales</button>
-            </form>
-        </div>
-
-        <div id="result">
+                        <option value="btc">Bitcoin</option>r Fee:</strong> <span class="fee"></span></div>
+                        <option value="eth">Ethereum</option>ng Time:</strong> <span class="time"></span></div>
+                        <option value="usdt">USDT</option>rk Status:</strong> <span class="network"></span></div>
+                        <option value="usdc">USDC</option>ss Rate:</strong> <span class="probability"></span></div>
+                    </select>s="result-item"><strong>Current Block:</strong> <span class="block"></span></div>
+                </label> class="result-item"><strong>Settlement Time:</strong> <span class="confirmation"></span></div>
+                <button type="submit" class="whale-button">Start Tracking</button> class="impact"></span></div>
+            </form>iv>
+            </div>
+            <div class="whale-container">
+                <div class="whale-transactions"></div>
+            </div>hale" class="tab-content">
+        </div>orm class="prediction-form">
+                <label>Minimum Transaction Size:
+        <div id="result">t type="number" name="minAmount" required>
             <div class="result-grid">
                 <div class="result-item">
                     <strong>Estimated Fee:</strong>
-                    <span class="fee"></span>
-                </div>
-                <div class="result-item">
-                    <strong>Expected Time:</strong>
+                    <span class="fee"></span>itcoin</option>
+                </div>  <option value="eth">Ethereum</option>
+                <div class="result-item">dt">USDT</option>
+                    <strong>Expected Time:</strong>option>
                     <span class="time"></span>
-                </div>
-                <div class="result-item">
+                </div>l>
+                <div class="result-item">ss="whale-button">Start Tracking</button>
                     <strong>Network Load:</strong>
                     <span class="network"></span>
-                </div>
-                <div class="result-item">
+                </div>="whale-container">
+                <div class="result-item">tions"></div>
                     <strong>Success Probability:</strong>
                     <span class="probability"></span>
                 </div>
                 <div class="result-item">
                     <strong>Current Block Height:</strong>
                     <span class="block"></span>
-                </div>
-                <div class="result-item">
+                </div>trong>Estimated Fee:</strong>
+                <div class="result-item">pan>
+                    <strong>Average Confirmation Time:</strong>
+                    <span class="confirmation"></span>
+                </div>trong>Expected Time:</strong>
+                <div class="result-item">span>
+                    <strong>Market Impact:</strong>
+                    <span class="impact"></span>
+                </div>trong>Network Load:</strong>
+            </div>  <span class="network"></span>
+        </div>  </div>
+    </div>      <div class="result-item">
+                    <strong>Success Probability:</strong>
+    <footer class="footer">lass="probability"></span>
+        Created by Kilanko Paul
+    </footer>   <div class="result-item">
+                    <strong>Current Block Height:</strong>
+    <script src="/static/js/main.js"></script>>
+</body>         </div>
+</html>         <div class="result-item">
                     <strong>Average Confirmation Time:</strong>
                     <span class="confirmation"></span>
                 </div>
