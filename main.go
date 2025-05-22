@@ -89,36 +89,26 @@ func handleWhaleStop(w http.ResponseWriter, r *http.Request) {
 func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     
-    // Use correct path without quotes for space in filename
+    // Use the working directory where the script is located
+    wd, err := os.Getwd()
+    if err != nil {
+        log.Printf("Error getting working directory: %v", err)
+        http.Error(w, "Internal server error", http.StatusInternalServerError)
+        return
+    }
+    
+    // Execute Python script with proper path
     cmd := exec.Command("python3", "report bitcoin.py")
+    cmd.Dir = wd
     
-    // Get absolute path to the project directory
-    projectDir := "/home/kilanko/APPs/prydict"
-    cmd.Dir = projectDir
-    
+    // Get the output directly from the Python script
     output, err := cmd.CombinedOutput()
     if err != nil {
         log.Printf("Error executing Python script: %v\nOutput: %s", err, string(output))
-        log.Printf("Working directory: %s", projectDir)
-        // Fall back to dummy data on error
-        dummyData := map[string]interface{}{
-            "transactions": []map[string]string{
-                {
-                    "type": "INTERNAL TRANSFER",
-                    "timestamp": "2025-05-22 14:30:25",
-                    "hash": "0x7a23c98ff44b3214567890abcdef123456789012345678901234567890abcdef",
-                    "amount": "235.45 BTC",
-                    "from_address": "3FaA4dJuuvJFyUHbqHLkZKJcuDPugvG3zE",
-                    "from_label": "Coinbase",
-                    "to_address": "1NDyJtNTjmwk5xPNhjgAMu4HDHigtobu1s",
-                    "to_label": "Gemini",
-                },
-            },
-        }
-        json.NewEncoder(w).Encode(dummyData)
+        http.Error(w, "Failed to get transactions", http.StatusInternalServerError)
         return
     }
 
-    // Log the output for debugging
-    log.Printf("Raw Python output: %s", string(output))
+    // Pass through the Python script output directly
+    w.Write(output)
 }
