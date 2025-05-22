@@ -47,7 +47,10 @@
             border: none;
             color: white;
             cursor: pointer;
-            transition: 0.3s;
+            transition: background-color 0.3s ease;
+        }
+        .tab-button:hover {
+            background: rgba(247, 147, 26, 0.7);
         }
         .tab-button.active {
             background: #f7931a;
@@ -78,14 +81,23 @@
             color: white;
         }
         button {
-            width: 100%;
-            padding: 1rem;
+            width: auto;
+            min-width: 120px;
+            padding: 0.75rem 1.5rem;
             background: #f7931a;
             border: none;
             border-radius: 4px;
             color: white;
             font-weight: bold;
             cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #e67f00;
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(1px);
         }
         #result {
             margin-top: 2rem;
@@ -94,16 +106,23 @@
             border-radius: 4px;
             display: none;
         }
+        .result-section {
+            margin-top: 2rem;
+            display: none;
+        }
         .result-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
-            margin-top: 1rem;
         }
         .result-item {
             background: rgba(255, 255, 255, 0.05);
             padding: 1rem;
             border-radius: 4px;
+        }
+        .result-item strong {
+            color: #f7931a;
+            margin-right: 0.5rem;
         }
         .footer {
             text-align: center;
@@ -143,6 +162,17 @@
                 </label>
                 <button type="submit">Predict Fee</button>
             </form>
+            <div class="result-section">
+                <div class="result-grid">
+                    <div class="result-item"><strong>Estimated Fee:</strong> <span class="fee"></span></div>
+                    <div class="result-item"><strong>Expected Time:</strong> <span class="time"></span></div>
+                    <div class="result-item"><strong>Network Load:</strong> <span class="network"></span></div>
+                    <div class="result-item"><strong>Success Probability:</strong> <span class="probability"></span></div>
+                    <div class="result-item"><strong>Current Block:</strong> <span class="block"></span></div>
+                    <div class="result-item"><strong>Confirmation Time:</strong> <span class="confirmation"></span></div>
+                    <div class="result-item"><strong>Market Impact:</strong> <span class="impact"></span></div>
+                </div>
+            </div>
         </div>
 
         <div id="ethereum" class="tab-content">
@@ -159,6 +189,71 @@
                 </label>
                 <button type="submit">Predict Fee</button>
             </form>
+            <div class="result-section">
+                <div class="result-grid">
+                    <div class="result-item"><strong>Gas Fee:</strong> <span class="fee"></span></div>
+                    <div class="result-item"><strong>Transaction Time:</strong> <span class="time"></span></div>
+                    <div class="result-item"><strong>Gas Price:</strong> <span class="network"></span></div>
+                    <div class="result-item"><strong>Success Rate:</strong> <span class="probability"></span></div>
+                    <div class="result-item"><strong>Block Number:</strong> <span class="block"></span></div>
+                    <div class="result-item"><strong>Average Wait:</strong> <span class="confirmation"></span></div>
+                    <div class="result-item"><strong>Price Impact:</strong> <span class="impact"></span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="usdt" class="tab-content">
+            <form class="prediction-form">
+                <label>Amount (USDT):
+                    <input type="number" name="amount" step="0.01" required>
+                </label>
+                <label>Network:
+                    <select name="network">
+                        <option value="eth">Ethereum</option>
+                        <option value="trc">Tron</option>
+                        <option value="bsc">BSC</option>
+                    </select>
+                </label>
+                <button type="submit">Predict Fee</button>
+            </form>
+            <div class="result-section">
+                <div class="result-grid">
+                    <div class="result-item"><strong>Transfer Fee:</strong> <span class="fee"></span></div>
+                    <div class="result-item"><strong>Estimated Time:</strong> <span class="time"></span></div>
+                    <div class="result-item"><strong>Network Status:</strong> <span class="network"></span></div>
+                    <div class="result-item"><strong>Success Rate:</strong> <span class="probability"></span></div>
+                    <div class="result-item"><strong>Latest Block:</strong> <span class="block"></span></div>
+                    <div class="result-item"><strong>Finality Time:</strong> <span class="confirmation"></span></div>
+                    <div class="result-item"><strong>Liquidity Impact:</strong> <span class="impact"></span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="usdc" class="tab-content">
+            <form class="prediction-form">
+                <label>Amount (USDC):
+                    <input type="number" name="amount" step="0.01" required>
+                </label>
+                <label>Network:
+                    <select name="network">
+                        <option value="eth">Ethereum</option>
+                        <option value="sol">Solana</option>
+                        <option value="poly">Polygon</option>
+                    </select>
+                </label>
+                <button type="submit">Predict Fee</button>
+            </form>
+            <div class="result-section">
+                <div class="result-grid">
+                    <div class="result-item"><strong>Transfer Fee:</strong> <span class="fee"></span></div>
+                    <div class="result-item"><strong>Processing Time:</strong> <span class="time"></span></div>
+                    <div class="result-item"><strong>Network Status:</strong> <span class="network"></span></div>
+                    <div class="result-item"><strong>Success Rate:</strong> <span class="probability"></span></div>
+                    <div class="result-item"><strong>Current Block:</strong> <span class="block"></span></div>
+                    <div class="result-item"><strong>Settlement Time:</strong> <span class="confirmation"></span></div>
+                    <div class="result-item"><strong>Market Impact:</strong> <span class="impact"></span></div>
+                </div>
+            </div>
         </div>
 
         <div id="whale" class="tab-content">
