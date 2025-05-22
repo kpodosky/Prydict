@@ -108,6 +108,7 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
                 "to_history": "(GEMINI EXCHANGE) [↑567|↓890] Total: ↑23456.78|↓12345.67 BTC",
                 "market_impact": "≈0.15% of 24h volume",
                 "analysis": "⚪ SIGNIFICANT internal movement - Exchange rebalancing",
+
                 "stats": "Processed 2,453 transactions, found 1 whale movements",
             },
         },
