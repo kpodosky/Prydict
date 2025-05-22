@@ -89,9 +89,9 @@ func handleWhaleStop(w http.ResponseWriter, r *http.Request) {
 func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     
-    // Using correct filename with quotes to handle space
-    cmd := exec.Command("python3", "./report bitcoin.py")
-    cmd.Dir = "/home/kilanko/APPs/prydict"
+    // Fix the working directory path
+    cmd := exec.Command("python3", "report bitcoin.py")
+    cmd.Dir = "/home/kilanko/APPs/prydict"  // Correct absolute path
     
     output, err := cmd.CombinedOutput()
     if err != nil {
