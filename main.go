@@ -50,7 +50,40 @@ func handlePredict(w http.ResponseWriter, r *http.Request) {
     }
     
     w.Header().Set("Content-Type", "application/json")
-    w.Write([]byte(`{"fee": "0.0001 BTC", "time": "10 minutes"}`))
+    
+    // Fee predictions with different speed options
+    predictions := map[string]interface{}{
+        "bitcoin": map[string]interface{}{
+            "fastest":     {"fee": "0.00050 BTC", "time": "1-2 minutes"},
+            "fast":       {"fee": "0.00030 BTC", "time": "3-5 minutes"},
+            "standard":   {"fee": "0.00020 BTC", "time": "10-20 minutes"},
+            "economic":   {"fee": "0.00015 BTC", "time": "30-60 minutes"},
+            "minimum":    {"fee": "0.00010 BTC", "time": "1-2 hours"},
+        },
+        "ethereum": map[string]interface{}{
+            "fastest":     {"fee": "50 GWEI", "time": "15 seconds"},
+            "fast":       {"fee": "35 GWEI", "time": "30 seconds"},
+            "standard":   {"fee": "25 GWEI", "time": "2 minutes"},
+            "economic":   {"fee": "20 GWEI", "time": "5 minutes"},
+            "minimum":    {"fee": "15 GWEI", "time": "10 minutes"},
+        },
+        "usdt": map[string]interface{}{
+            "fastest":     {"fee": "100 GWEI", "time": "15 seconds"},
+            "fast":       {"fee": "80 GWEI", "time": "30 seconds"},
+            "standard":   {"fee": "60 GWEI", "time": "1 minute"},
+            "economic":   {"fee": "40 GWEI", "time": "3 minutes"},
+            "minimum":    {"fee": "20 GWEI", "time": "5 minutes"},
+        },
+        "usdc": map[string]interface{}{
+            "fastest":     {"fee": "100 GWEI", "time": "15 seconds"},
+            "fast":       {"fee": "80 GWEI", "time": "30 seconds"},
+            "standard":   {"fee": "60 GWEI", "time": "1 minute"},
+            "economic":   {"fee": "40 GWEI", "time": "3 minutes"},
+            "minimum":    {"fee": "20 GWEI", "time": "5 minutes"},
+        },
+    }
+    
+    json.NewEncoder(w).Encode(predictions)
 }
 
 func handleWhaleStart(w http.ResponseWriter, r *http.Request) {
