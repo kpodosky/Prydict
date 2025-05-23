@@ -1,0 +1,65 @@
+/* Container styles */
+.transaction-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 15px 0;
+    padding: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.transaction-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Text styles */
+.transaction-container {
+    color: #000;
+    font-family: 'Courier New', monospace;
+    line-height: 1.5;
+}
+
+/* Header styles */
+.alert-header {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* Section styles */
+.details-section, .address-section, .analysis-section {
+    border-left: 3px solid #eee;
+    margin: 10px 0;
+    padding-left: 15px;
+}
+
+/* Transaction type colors */
+.type-deposit { color: #28a745; }
+.type-withdrawal { color: #dc3545; }
+.type-internal { color: #ffc107; }
+.type-unknown { color: #17a2b8; }
+
+/* Arrow indicators */
+.arrow-up {
+    color: #28a745;  /* Green */
+    font-weight: bold;
+}
+
+.arrow-down {
+    color: #dc3545;  /* Red */
+    font-weight: bold;
+}
+
+/* Stats and values */
+.btc-amount, .hash-value {
+    font-family: monospace;
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.market-impact {
+    font-weight: bold;
+    color: #6c757d;
+}
