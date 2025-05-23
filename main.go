@@ -16,9 +16,9 @@ func main() {
     // Create a new mux for routing
     mux := http.NewServeMux()
     
-    // Serve static files
+    // Serve static files - Fix the static file serving
     fs := http.FileServer(http.Dir("static"))
-    http.Handle("/static/", http.StripPrefix("/static/", fs))
+    mux.Handle("/static/", http.StripPrefix("/static/", fs))
     
     // Register route handlers
     mux.HandleFunc("/", handleHome)
