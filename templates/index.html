@@ -2,231 +2,7 @@
 <html>
 <head>
     <title>Prydict - Crypto Fee Predictor</title>
-    <style>
-        html, body {
-            height: 100%;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
-            color: #ffffff;
-            min-height: 100vh;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0;
-        }
-        .container {
-            width: 100%;
-            max-width: 800px;
-            padding: 2rem;
-        }
-        .brand {
-            color: #f7931a;
-            font-size: 3.5rem;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        .subtitle {
-            text-align: center;
-            color: #f0f0f0;
-            margin-bottom: 2rem;
-        }
-        .tabs {
-            display: flex;
-            margin-bottom: 2rem;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .tab-button {
-            flex: 1;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        .tab-button:hover {
-            background: rgba(247, 147, 26, 0.7);
-        }
-        .tab-button.active {
-            background: #f7931a;
-        }
-        .tab-button[data-tab="whale"].active {
-            background: #28a745;
-        }
-        .tab-button.active:not([data-tab="whale"]) {
-            background: #f7931a;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        form {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2rem;
-            border-radius: 12px;
-        }
-        label {
-            display: block;
-            margin-bottom: 1rem;
-            color: #f0f0f0;
-        }
-        input, select {
-            width: 100%;
-            padding: 0.5rem;
-            margin-bottom: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid #f7931a;
-            border-radius: 4px;
-            color: white;
-        }
-        button {
-            width: auto;
-            min-width: 120px;
-            padding: 0.75rem 1.5rem;
-            background: #f7931a;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        button:hover {
-            background: #e67f00;
-            transform: translateY(-1px);
-        }
-        button:active {
-            transform: translateY(1px);
-        }
-        #result {
-            margin-top: 2rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            display: none;
-        }
-        .result-section {
-            margin-top: 2rem;
-            display: none;
-        }
-        .result-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-        .result-item {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1rem;
-            border-radius: 4px;
-        }
-        .result-item strong {
-            color: #f7931a;
-            margin-right: 0.5rem;
-        }
-        .footer {
-            text-align: center;
-            padding: 1rem;
-            color: #f0f0f0;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        .whale-container {
-            margin-top: 2rem;
-            max-height: 600px;
-            overflow-y: auto;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 1rem;
-            display: none;
-        }
-
-        .whale-transaction {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 8px;
-            border-left: 3px solid #f7931a;
-            animation: slideIn 0.3s ease-out;
-            font-family: monospace;
-        }
-
-        .tx-header {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-
-        .tx-hash {
-            color: #aaa;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .tx-amount {
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
-            color: #f7931a;
-        }
-
-        .tx-from, .tx-to {
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .tx-history {
-            padding-left: 1rem;
-            color: #888;
-            font-size: 0.8rem;
-        }
-
-        .tx-separator {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin: 0.5rem 0;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateY(-10px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .whale-header {
-            color: #f7931a;
-            font-family: monospace;
-            padding: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 10px;
-        }
-
-        .whale-alert {
-            font-family: monospace;
-            white-space: pre-wrap;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 15px;
-            margin-bottom: 15px;
-            border-left: 3px solid;
-        }
-
-        .whale-alert.internal { border-color: #ffc107; }
-        .whale-alert.withdrawal { border-color: #dc3545; }
-        .whale-alert.deposit { border-color: #28a745; }
-        .whale-alert.unknown { border-color: #17a2b8; }
-    </style>
+    <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
     <div class="container">
@@ -365,12 +141,43 @@
                 <button type="submit" class="whale-button">Start Tracking</button>
             </form>
             <div class="whale-container">
-                <div class="whale-transactions">
-                    <div class="whale-header">
-                        Tracking transactions over 100
-                        Waiting for new blocks...
+                <template id="transaction-template">
+                    <div class="transaction-container">
+                        <div class="alert-header">
+                            🚨 Bitcoin <span class="type-${type}">${type}</span> Alert! ${timestamp}
+                        </div>
+
+                        <div class="details-section">
+                            <h3>Transaction Details</h3>
+                            <div>Hash: <span class="hash-value">${hash}</span></div>
+                            <div>Amount: <span class="btc-amount">${amount} BTC</span> (${amount_usd})</div>
+                            <div>Fee: <span class="btc-amount">${fee} BTC</span> (${fee_usd})</div>
+                        </div>
+
+                        <div class="address-section">
+                            <h3>Address Information</h3>
+                            <div>
+                                From: ${from_address} (${from_label})
+                                <div class="history">
+                                    History: [<span class="arrow-up">↑${from_txs_out}</span>|<span class="arrow-down">↓${from_txs_in}</span>] 
+                                    Total: <span class="arrow-up">↑${from_total_out}</span>|<span class="arrow-down">↓${from_total_in}</span> BTC
+                                </div>
+                            </div>
+                            <div>
+                                To: ${to_address} (${to_label})
+                                <div class="history">
+                                    History: [<span class="arrow-up">↑${to_txs_out}</span>|<span class="arrow-down">↓${to_txs_in}</span>] 
+                                    Total: <span class="arrow-up">↑${to_total_out}</span>|<span class="arrow-down">↓${to_total_in}</span> BTC
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="analysis-section">
+                            <div class="market-impact">Market Impact: ${market_impact}</div>
+                            <div>Analysis: ${analysis}</div>
+                        </div>
                     </div>
-                </div>
+                </template>
             </div>
         </div>
     </div>
