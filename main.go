@@ -51,35 +51,41 @@ func handlePredict(w http.ResponseWriter, r *http.Request) {
     
     w.Header().Set("Content-Type", "application/json")
     
+    // Define the fee prediction type
+    type FeeInfo struct {
+        Fee  string `json:"fee"`
+        Time string `json:"time"`
+    }
+    
     // Fee predictions with different speed options
-    predictions := map[string]interface{}{
-        "bitcoin": map[string]interface{}{
-            "fastest":     {"fee": "0.00050 BTC", "time": "1-2 minutes"},
-            "fast":       {"fee": "0.00030 BTC", "time": "3-5 minutes"},
-            "standard":   {"fee": "0.00020 BTC", "time": "10-20 minutes"},
-            "economic":   {"fee": "0.00015 BTC", "time": "30-60 minutes"},
-            "minimum":    {"fee": "0.00010 BTC", "time": "1-2 hours"},
+    predictions := map[string]map[string]FeeInfo{
+        "bitcoin": {
+            "fastest":   FeeInfo{"0.00050 BTC", "1-2 minutes"},
+            "fast":      FeeInfo{"0.00030 BTC", "3-5 minutes"},
+            "standard":  FeeInfo{"0.00020 BTC", "10-20 minutes"},
+            "economic":  FeeInfo{"0.00015 BTC", "30-60 minutes"},
+            "minimum":   FeeInfo{"0.00010 BTC", "1-2 hours"},
         },
-        "ethereum": map[string]interface{}{
-            "fastest":     {"fee": "50 GWEI", "time": "15 seconds"},
-            "fast":       {"fee": "35 GWEI", "time": "30 seconds"},
-            "standard":   {"fee": "25 GWEI", "time": "2 minutes"},
-            "economic":   {"fee": "20 GWEI", "time": "5 minutes"},
-            "minimum":    {"fee": "15 GWEI", "time": "10 minutes"},
+        "ethereum": {
+            "fastest":   FeeInfo{"50 GWEI", "15 seconds"},
+            "fast":      FeeInfo{"35 GWEI", "30 seconds"},
+            "standard":  FeeInfo{"25 GWEI", "2 minutes"},
+            "economic":  FeeInfo{"20 GWEI", "5 minutes"},
+            "minimum":   FeeInfo{"15 GWEI", "10 minutes"},
         },
-        "usdt": map[string]interface{}{
-            "fastest":     {"fee": "100 GWEI", "time": "15 seconds"},
-            "fast":       {"fee": "80 GWEI", "time": "30 seconds"},
-            "standard":   {"fee": "60 GWEI", "time": "1 minute"},
-            "economic":   {"fee": "40 GWEI", "time": "3 minutes"},
-            "minimum":    {"fee": "20 GWEI", "time": "5 minutes"},
+        "usdt": {
+            "fastest":   FeeInfo{"100 GWEI", "15 seconds"},
+            "fast":      FeeInfo{"80 GWEI", "30 seconds"},
+            "standard":  FeeInfo{"60 GWEI", "1 minute"},
+            "economic":  FeeInfo{"40 GWEI", "3 minutes"},
+            "minimum":   FeeInfo{"20 GWEI", "5 minutes"},
         },
-        "usdc": map[string]interface{}{
-            "fastest":     {"fee": "100 GWEI", "time": "15 seconds"},
-            "fast":       {"fee": "80 GWEI", "time": "30 seconds"},
-            "standard":   {"fee": "60 GWEI", "time": "1 minute"},
-            "economic":   {"fee": "40 GWEI", "time": "3 minutes"},
-            "minimum":    {"fee": "20 GWEI", "time": "5 minutes"},
+        "usdc": {
+            "fastest":   FeeInfo{"100 GWEI", "15 seconds"},
+            "fast":      FeeInfo{"80 GWEI", "30 seconds"},
+            "standard":  FeeInfo{"60 GWEI", "1 minute"},
+            "economic":  FeeInfo{"40 GWEI", "3 minutes"},
+            "minimum":   FeeInfo{"20 GWEI", "5 minutes"},
         },
     }
     
