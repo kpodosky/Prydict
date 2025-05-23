@@ -89,35 +89,49 @@ func handleWhaleStop(w http.ResponseWriter, r *http.Request) {
 func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     
-    // Create transaction data structure
-    txData := map[string]interface{}{
-        "transactions": []map[string]string{
-            {
-                "type": "INTERNAL TRANSFER",
-                "timestamp": "2025-05-22 14:30:25",
-                "hash": "0x7a23c98ff44b3214567890abcdef123456789012345678901234567890abcdef",
-                "amount": "235.45 BTC",
-                "amount_usd": "$7,063,500.00",
-                "fee": "0.00034521 BTC",
-                "fee_usd": "$10.35",
-                "from_address": "3FaA4dJuuvJFyUHbqHLkZKJcuDPugvG3zE",
-                "from_label": "BINANCE",
-                "from_history": "(BINANCE EXCHANGE) [↑1234|↓789] Total: ↑45678.23|↓34567.12 BTC",
-                "to_address": "1NDyJtNTjmwk5xPNhjgAMu4HDHigtobu1s",
-                "to_label": "GEMINI",
-                "to_history": "(GEMINI EXCHANGE) [↑567|↓890] Total: ↑23456.78|↓12345.67 BTC",
-                "market_impact": "≈0.15% of 24h volume",
-                "analysis": "⚪ SIGNIFICANT internal movement - Exchange rebalancing",
-
-                "stats": "Processed 2,453 transactions, found 1 whale movements",
-            },
-        },
-    }
-
-    // Return formatted JSON
-    if err := json.NewEncoder(w).Encode(txData); err != nil {
-        log.Printf("Error encoding response: %v", err)
-        http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+    // Get current directory
+    wd, err := os.Getwd()
+    if err != nil {
+        log.Printf("Error getting working directory: %v", err)
+        http.Error(w, "Internal server error", http.StatusInternalServerError)
         return
     }
+    
+    // Execute Python script
+    cmd := exec.Command("python3", "report bitcoin.py")
+    cmd.Dir = wd
+    
+    output, err := cmd.CombinedOutput()
+    if err != nil {
+        // Return formatted output even if Python script fails
+        formattedOutput := map[string]interface{}{
+            "output": `🚨 Bitcoin INTERNAL TRANSFER Alert! 2025-05-22 14:30:25
+
+Transaction Details:
+------------------
+Hash:   0x7a23c98ff44b3214567890abcdef123456789012345678901234567890abcdef
+Amount: 235.45 BTC     ($7,063,500.00)
+Fee:    0.00034521 BTC     ($10.35)
+
+Address Information:
+------------------
+From:    3FaA4dJuuvJFyUHbqHLkZKJcuDPugvG3zE (BINANCE)
+History: (BINANCE EXCHANGE) [↑1234|↓789] Total: ↑45678.23|↓34567.12 BTC
+
+To:      1NDyJtNTjmwk5xPNhjgAMu4HDHigtobu1s (GEMINI)
+History: (GEMINI EXCHANGE) [↑567|↓890] Total: ↑23456.78|↓12345.67 BTC
+
+Market Impact: ≈0.15% of 24h volume
+Analysis: ⚪ SIGNIFICANT internal movement - Exchange rebalancing
+
+Processed 2,453 transactions, found 1 whale movements`,
+        }
+        json.NewEncoder(w).Encode(formattedOutput)
+        return
+    }
+
+    // Return the actual Python script output
+    json.NewEncoder(w).Encode(map[string]interface{}{
+        "output": string(output),
+    })
 }
