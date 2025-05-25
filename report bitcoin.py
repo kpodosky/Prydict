@@ -176,21 +176,21 @@ class BitcoinWhaleTracker:
                 'type': 'exchange',
                 'addresses': [
                     '3LQUu4v9z6KNch71j7kbj8GPeAGUo1FW6a',  # FTX Hot Wallet
-                    '3E1jkR1PJ8hFUqCkDjimwPoF2bZVrkqnpv',  # FTX Cold Storage
+                    '3E1jkR1PJ8hFUqCkDjimwPoF2bZVrkqnpv'   # FTX Cold Storage
                 ]
             },
             'bybit': {
                 'type': 'exchange',
                 'addresses': [
                     '3JZq4atUahhuA9rLhXLMhhTo133J9rF97j',  # Bybit Hot Wallet
-                    '3QW95MafxER9W7kWDcosQNdLk4Z36TYJZL',  # Bybit Cold Storage
+                    '3QW95MafxER9W7kWDcosQNdLk4Z36TYJZL'   # Bybit Cold Storage
                 ]
             },
             'cryptocom': {
                 'type': 'exchange',
                 'addresses': [
                     '3P3QsMVK89JBNqZQv5zMAKG8FK3kJM4rjt',  # Crypto.com Hot Wallet
-                    '3AAzK4Xbu8PTM8AD7gw2XaMZavL6xoKWHQ',  # Crypto.com Cold Storage
+                    '3AAzK4Xbu8PTM8AD7gw2XaMZavL6xoKWHQ'   # Crypto.com Cold Storage
                 ]
             }
         }
@@ -435,8 +435,9 @@ class BitcoinWhaleTracker:
             'UNKNOWN TRANSFER': '\033[94m'   # Blue
         }.get(tx['tx_type'], '\033[94m')
         
-        # Format the USD values
+        # Format the USD values and convert fee to sats
         btc_usd = float(tx['btc_volume']) * get_btc_price()
+        fee_sats = int(float(tx['fee_btc']) * self.satoshi_to_btc)  # Convert BTC to sats
         fee_usd = float(tx['fee_btc']) * get_btc_price()
         
         # Build the structured output without borders
@@ -447,7 +448,7 @@ Transaction Details:
 ------------------
 Hash:   {tx['transaction_hash']}
 Amount: {tx['btc_volume']} BTC     (${btc_usd:,.2f})
-Fee:    {tx['fee_btc']} BTC     (${fee_usd:,.2f})\033[0m
+Fee:    {fee_sats:,} sats     (${fee_usd:,.2f})\033[0m
 
 Address Information:
 ------------------
