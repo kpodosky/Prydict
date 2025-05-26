@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const cryptoType = document.querySelector('.tab-button.active').dataset.tab;
-        const priority = form.querySelector('select[name="priority"]').value;
         
         try {
             const response = await fetch('/predict', {
@@ -34,8 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    cryptoType: cryptoType,
-                    priority: priority
+                    cryptoType: cryptoType
                 })
             });
             
@@ -43,14 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const resultSection = document.querySelector('.result-section');
             resultSection.innerHTML = '';
             
-            const resultItem = document.createElement('div');
-            resultItem.className = 'result-item';
-            resultItem.innerHTML = `
-                <h3>${priority.toUpperCase()}</h3>
-                <p>Fee: ${data[priority].fee}</p>
-                <p>Estimated Time: ${data[priority].time}</p>
-            `;
-            resultSection.appendChild(resultItem);
+            // Show multiple fee suggestions
+            const suggestions = ['fastest', 'fast', 'standard'];
+            suggestions.forEach(speed => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.innerHTML = `
+                    <h3>${speed.toUpperCase()}</h3>
+                    <p>Fee: ${data[speed].fee}</p>
+                    <p>Estimated Time: ${data[speed].time}</p>
+                `;
+                resultSection.appendChild(resultItem);
+            });
         } catch (error) {
             console.error('Error:', error);
         }
