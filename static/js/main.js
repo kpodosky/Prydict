@@ -20,40 +20,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Form submissions
+    // Fee prediction
     const forms = document.querySelectorAll('.prediction-form');
-    const result = document.getElementById('result');
-
     forms.forEach(form => {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const tabId = form.closest('.tab-content').id;
+            const priority = form.querySelector('select[name="priority"]').value;
+            
             try {
-                const formData = new FormData(form);
                 const response = await fetch('/predict', {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        cryptoType: tabId,
+                        priority: priority
+                    })
                 });
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
-                const data = await response.json();
-                result.style.display = 'block';
                 
-                // Update all result fields
-                result.querySelector('.fee').textContent = data.fee;
-                result.querySelector('.time').textContent = data.time;
-                result.querySelector('.network').textContent = data.network;
-                result.querySelector('.probability').textContent = data.probability;
-                result.querySelector('.block').textContent = data.block;
-                result.querySelector('.confirmation').textContent = data.confirmation;
-                result.querySelector('.impact').textContent = data.impact;
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                displayPredictions(data, tabId);
             } catch (error) {
-                result.style.display = 'block';
-                result.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                console.error('Error:', error);
+                const resultSection = form.nextElementSibling;
+                resultSection.innerHTML = '<div class="error">Failed to fetch fee predictions. Please try again.</div>';
             }
         });
     });
+    
+    function displayPredictions(predictions, cryptoType) {
+        const resultSection = document.querySelector(`#${cryptoType} .result-section`);
+        resultSection.innerHTML = '';
+        
+        Object.entries(predictions).forEach(([speed, info]) => {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result-item';
+            resultItem.innerHTML = `
+                <h3>${speed.toUpperCase()}</h3>
+                <p>Fee: ${info.fee}</p>
+                <p>Estimated Time: ${info.time}</p>
+            `;
+            resultSection.appendChild(resultItem);
+        });
+    }
 });
