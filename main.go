@@ -42,7 +42,9 @@ func handlePredict(w http.ResponseWriter, r *http.Request) {
         return
     }
     
-    // Parse the request body to get the cryptocurrency type
+    w.Header().Set("Content-Type", "application/json")
+    
+    // Parse the request body
     var request struct {
         CryptoType string `json:"cryptoType"`
         Priority   string `json:"priority"`
@@ -53,8 +55,6 @@ func handlePredict(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    w.Header().Set("Content-Type", "application/json")
-    
     // Define the fee prediction type
     type FeeInfo struct {
         Fee  string `json:"fee"`
@@ -62,25 +62,32 @@ func handlePredict(w http.ResponseWriter, r *http.Request) {
     }
     
     // Different predictions based on cryptocurrency type
+    var predictions map[string]FeeInfo
+    
     switch request.CryptoType {
     case "ethereum":
-        predictions := map[string]FeeInfo{
+        predictions = map[string]FeeInfo{
             "fastest":   {"250 GWEI", "15 seconds"},
             "fast":      {"150 GWEI", "30 seconds"},
             "standard":  {"100 GWEI", "2 minutes"},
             "economic":  {"80 GWEI", "5 minutes"},
             "minimum":   {"50 GWEI", "10 minutes"},
         }
-        json.NewEncoder(w).Encode(predictions)
-    default:
-        // Bitcoin and other predictions remain unchanged
-        predictions := map[string]FeeInfo{
+    case "bitcoin":
+        predictions = map[string]FeeInfo{
             "fastest":   {"0.00050 BTC", "1-2 minutes"},
             "fast":      {"0.00030 BTC", "3-5 minutes"},
             "standard":  {"0.00020 BTC", "10-20 minutes"},
             "economic":  {"0.00015 BTC", "30-60 minutes"},
             "minimum":   {"0.00010 BTC", "1-2 hours"},
         }
-        json.NewEncoder(w).Encode(predictions)
+    default:
+        http.Error(w, "Unsupported cryptocurrency type", http.StatusBadRequest)
+        return
+    }
+    
+    if err := json.NewEncoder(w).Encode(predictions); err != nil {
+        http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+        return
     }
 }
