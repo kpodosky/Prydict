@@ -21,53 +21,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Fee prediction
-    const forms = document.querySelectorAll('.prediction-form');
-    forms.forEach(form => {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const tabId = form.closest('.tab-content').id;
-            const priority = form.querySelector('select[name="priority"]').value;
-            
-            try {
-                const response = await fetch('/predict', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        cryptoType: tabId,
-                        priority: priority
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                displayPredictions(data, tabId);
-            } catch (error) {
-                console.error('Error:', error);
-                const resultSection = form.nextElementSibling;
-                resultSection.innerHTML = '<div class="error">Failed to fetch fee predictions. Please try again.</div>';
-            }
-        });
-    });
-    
-    function displayPredictions(predictions, cryptoType) {
-        const resultSection = document.querySelector(`#${cryptoType} .result-section`);
-        resultSection.innerHTML = '';
+    const form = document.querySelector('.prediction-form');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const cryptoType = document.querySelector('.tab-button.active').dataset.tab;
+        const priority = form.querySelector('select[name="priority"]').value;
         
-        Object.entries(predictions).forEach(([speed, info]) => {
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    cryptoType: cryptoType,
+                    priority: priority
+                })
+            });
+            
+            const data = await response.json();
+            const resultSection = document.querySelector('.result-section');
+            resultSection.innerHTML = '';
+            
             const resultItem = document.createElement('div');
             resultItem.className = 'result-item';
             resultItem.innerHTML = `
-                <h3>${speed.toUpperCase()}</h3>
-                <p>Fee: ${info.fee}</p>
-                <p>Estimated Time: ${info.time}</p>
+                <h3>${priority.toUpperCase()}</h3>
+                <p>Fee: ${data[priority].fee}</p>
+                <p>Estimated Time: ${data[priority].time}</p>
             `;
             resultSection.appendChild(resultItem);
-        });
-    }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
 });
