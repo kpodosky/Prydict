@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Tab handling
+    // Tab switching
     const tabs = document.querySelectorAll('.tab-button');
     const contents = document.querySelectorAll('.tab-content');
 
@@ -14,14 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Fee prediction
-    const form = document.querySelector('.prediction-form');
-    if (form) {
+    document.querySelectorAll('.prediction-form').forEach(form => {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const cryptoType = document.querySelector('.tab-button.active').dataset.tab;
-            const resultSection = document.querySelector('.result-section');
-            
-            resultSection.innerHTML = '<div>Loading predictions...</div>';
+            const cryptoType = e.target.closest('.tab-content').id;
+            const resultSection = e.target.nextElementSibling;
+            resultSection.style.display = 'block';
             
             try {
                 const response = await fetch('/predict', {
@@ -38,22 +36,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
                 resultSection.innerHTML = '';
 
+                // Create result grid
+                const grid = document.createElement('div');
+                grid.className = 'result-grid';
+
+                // Display all fee predictions
                 Object.entries(data).forEach(([speed, info]) => {
-                    const feeBox = document.createElement('div');
-                    feeBox.className = 'fee-box';
-                    feeBox.innerHTML = `
-                        <div class="fee-prediction">
-                            <h3>${speed.toUpperCase()}</h3>
-                            <p class="fee">Fee: ${info.fee}</p>
-                            <p class="time">Expected Time: ${info.time}</p>
-                        </div>
+                    const item = document.createElement('div');
+                    item.className = 'result-item';
+                    item.innerHTML = `
+                        <strong>${speed.toUpperCase()}</strong>
+                        <div>Fee: ${info.fee}</div>
+                        <div>Time: ${info.time}</div>
                     `;
-                    resultSection.appendChild(feeBox);
+                    grid.appendChild(item);
                 });
+
+                resultSection.appendChild(grid);
+                resultSection.style.display = 'block';
+
             } catch (error) {
-                console.error('Error:', error);
-                resultSection.innerHTML = '<div class="error-message">Failed to fetch fee predictions</div>';
+                resultSection.innerHTML = '<div class="error">Failed to fetch predictions</div>';
             }
         });
-    }
+    });
 });
