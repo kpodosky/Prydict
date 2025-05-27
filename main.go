@@ -6,6 +6,7 @@ import (
     "log"
     "net/http"
     "os"
+    "os/exec"
 )
 
 func main() {
@@ -19,6 +20,10 @@ func main() {
     // Register route handlers
     mux.HandleFunc("/", handleHome)
     mux.HandleFunc("/predict", handlePredict)
+    // Add whale watch endpoints
+    mux.HandleFunc("/whale-watch/start", handleWhaleWatchStart)
+    mux.HandleFunc("/whale-watch/stop", handleWhaleWatchStop)
+    mux.HandleFunc("/whale-watch/transactions", handleWhaleTransactions)
     
     // Get port from environment variable
     port := os.Getenv("PORT")
@@ -106,4 +111,51 @@ func handlePredict(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Failed to encode response", http.StatusInternalServerError)
         return
     }
+}
+
+// Add these new handler functions
+func handleWhaleWatchStart(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodPost {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
+    
+    cmd := exec.Command("python3", "report bitcoin.py")
+    if err := cmd.Start(); err != nil {
+        http.Error(w, "Failed to start whale tracking", http.StatusInternalServerError)
+        return
+    }
+    
+    w.WriteHeader(http.StatusOK)
+}
+
+func handleWhaleWatchStop(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodPost {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
+    
+    // Add command to stop the Python script
+    cmd := exec.Command("pkill", "-f", "report bitcoin.py")
+    cmd.Run()
+    
+    w.WriteHeader(http.StatusOK)
+}
+
+func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodGet {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
+    
+    w.Header().Set("Content-Type", "application/json")
+    
+    cmd := exec.Command("python3", "report bitcoin.py")
+    output, err := cmd.CombinedOutput()
+    if err != nil {
+        http.Error(w, "Failed to get whale transactions", http.StatusInternalServerError)
+        return
+    }
+    
+    json.NewEncoder(w).Encode(map[string]string{"output": string(output)})
 }
