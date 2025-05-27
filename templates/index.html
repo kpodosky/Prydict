@@ -139,6 +139,7 @@
             margin-top: 20px;
             max-height: 600px;
             overflow-y: auto;
+            
         }
 
         .whale-alert {
@@ -286,23 +287,10 @@
         </div>
 
         <div id="whale" class="tab-content">
-            <form class="prediction-form">
-                <label>Minimum Transaction Size:
-                    <input type="number" name="minAmount" required>
-                </label>
-                <label>Cryptocurrency:
-                    <select name="currency">
-                        <option value="btc">Bitcoin</option>
-                        <option value="eth">Ethereum</option>
-                        <option value="usdt">USDT</option>
-                        <option value="usdc">USDC</option>
-                    </select>
-                </label>
-                <button type="submit">Track Whales</button>
+            <form class="whale-form">
+                <button type="submit">Start Whale Watch</button>
             </form>
-            <div class="whale-transactions">
-                <!-- Whale transaction alerts will be injected here by JavaScript -->
-            </div>
+            <div class="whale-transactions"></div>
         </div>
 
         <div id="result">
