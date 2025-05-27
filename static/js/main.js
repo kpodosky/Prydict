@@ -104,21 +104,35 @@ document.addEventListener('DOMContentLoaded', () => {
         whaleForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const button = whaleForm.querySelector('button');
-
+            
             if (!isTracking) {
                 try {
-                    const response = await fetch('/whale-watch/start', { method: 'POST' });
+                    // Get form values
+                    const minAmount = parseFloat(whaleForm.querySelector('#minAmount').value);
+                    const txTypes = Array.from(whaleForm.querySelectorAll('input[name="txTypes"]:checked'))
+                        .map(cb => cb.value);
+
+                    // Start tracking with parameters
+                    const response = await fetch('/whale-watch/start', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            minAmount: minAmount,
+                            txTypes: txTypes
+                        })
+                    });
+
                     if (response.ok) {
                         button.textContent = 'Stop Tracking';
                         isTracking = true;
-                        whaleTransactions.innerHTML = '';
-                        
-                        // Fetch immediately then set up interval
-                        await fetchTransactions();
+                        whaleTransactions.innerHTML = '<div>Starting whale watch...</div>';
+                        fetchTransactions();
                         trackingInterval = setInterval(fetchTransactions, 30000);
                     }
                 } catch (error) {
-                    console.error('Error starting tracker:', error);
+                    console.error('Error:', error);
                     whaleTransactions.innerHTML = '<div class="error">Failed to start whale tracking</div>';
                 }
             } else {
