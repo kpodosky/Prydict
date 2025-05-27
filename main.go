@@ -75,11 +75,27 @@ func handlePredict(w http.ResponseWriter, r *http.Request) {
         }
     case "bitcoin":
         predictions = map[string]FeeInfo{
-            "fastest":   {"0.00050 BTC", "1-2 minutes"},
-            "fast":      {"0.00030 BTC", "3-5 minutes"},
-            "standard":  {"0.00020 BTC", "10-20 minutes"},
-            "economic":  {"0.00015 BTC", "30-60 minutes"},
-            "minimum":   {"0.00010 BTC", "1-2 hours"},
+            "fastest":   {"50,000 sats", "1-2 minutes"},
+            "fast":      {"30,000 sats", "3-5 minutes"},
+            "standard":  {"20,000 sats", "10-20 minutes"},
+            "economic":  {"15,000 sats", "30-60 minutes"},
+            "minimum":   {"10,000 sats", "1-2 hours"},
+        }
+    case "usdt":
+        predictions = map[string]FeeInfo{
+            "fastest":   {"100 GWEI", "15 seconds"},
+            "fast":      {"80 GWEI", "30 seconds"},
+            "standard":  {"60 GWEI", "1 minute"},
+            "economic":  {"40 GWEI", "3 minutes"},
+            "minimum":   {"20 GWEI", "5 minutes"},
+        }
+    case "usdc":
+        predictions = map[string]FeeInfo{
+            "fastest":   {"100 GWEI", "15 seconds"},
+            "fast":      {"80 GWEI", "30 seconds"},
+            "standard":  {"60 GWEI", "1 minute"},
+            "economic":  {"40 GWEI", "3 minutes"},
+            "minimum":   {"20 GWEI", "5 minutes"},
         }
     default:
         http.Error(w, "Unsupported cryptocurrency type", http.StatusBadRequest)
