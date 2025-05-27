@@ -2,13 +2,13 @@ package main
 
 import (
     "encoding/json"
+    "fmt"
     "html/template"
     "log"
     "net/http"
     "os"
     "os/exec"
-    
-    
+    "strings"
 )
 
 func main() {
@@ -115,6 +115,7 @@ func handlePredict(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+
 func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     if r.Method != http.MethodGet {
         http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -152,17 +153,31 @@ func handleWhaleWatchStart(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
         return
     }
-    
-    // Start the Python script in background
-    cmd := exec.Command("python3", "/home/kilanko/APPs/prydict/report bitcoin.py")
+
+    // Parse form data
+    var request struct {
+        MinAmount float64    `json:"minAmount"`
+        TxTypes   []string   `json:"txTypes"`
+    }
+
+    if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+        http.Error(w, "Invalid request format", http.StatusBadRequest)
+        return
+    }
+
+    // Construct command with parameters
+    cmd := exec.Command("python3", 
+        "/home/kilanko/APPs/prydict/report bitcoin.py",
+        "--min-btc", fmt.Sprintf("%.2f", request.MinAmount),
+        "--types", strings.Join(request.TxTypes, ","))
     cmd.Dir = "/home/kilanko/APPs/prydict"
-    
+
     if err := cmd.Start(); err != nil {
         log.Printf("Error starting Python script: %v", err)
         http.Error(w, "Failed to start whale tracking", http.StatusInternalServerError)
         return
     }
-    
+
     w.WriteHeader(http.StatusOK)
 }
 
