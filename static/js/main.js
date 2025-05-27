@@ -71,12 +71,12 @@ document.addEventListener('DOMContentLoaded', () => {
         let trackingInterval;
 
         // Initial fetch to show transactions immediately
-        async function fetchTransactions() {
+        async function fetchTransactions(minAmount) {
             try {
-                const txResponse = await fetch('/whale-watch/transactions');
-                if (!txResponse.ok) throw new Error('Failed to fetch transactions');
+                const response = await fetch(`/whale-watch/transactions?minAmount=${minAmount}`);
+                if (!response.ok) throw new Error('Failed to fetch transactions');
                 
-                const data = await txResponse.json();
+                const data = await response.json();
                 if (data.output) {
                     const txDiv = document.createElement('div');
                     txDiv.className = 'whale-alert';
@@ -104,49 +104,27 @@ document.addEventListener('DOMContentLoaded', () => {
         whaleForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const button = whaleForm.querySelector('button');
-            
+            const minAmount = document.getElementById('minAmount').value;
+
             if (!isTracking) {
-                try {
-                    // Get form values
-                    const minAmount = parseFloat(whaleForm.querySelector('#minAmount').value);
-                    const txTypes = Array.from(whaleForm.querySelectorAll('input[name="txTypes"]:checked'))
-                        .map(cb => cb.value);
-
-                    // Start tracking with parameters
-                    const response = await fetch('/whale-watch/start', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            minAmount: minAmount,
-                            txTypes: txTypes
-                        })
-                    });
-
-                    if (response.ok) {
-                        button.textContent = 'Stop Tracking';
-                        isTracking = true;
-                        whaleTransactions.innerHTML = '<div>Starting whale watch...</div>';
-                        fetchTransactions();
-                        trackingInterval = setInterval(fetchTransactions, 30000);
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    whaleTransactions.innerHTML = '<div class="error">Failed to start whale tracking</div>';
-                }
+                button.textContent = 'Stop Tracking';
+                isTracking = true;
+                whaleTransactions.innerHTML = '<div>Starting whale watch...</div>';
+                
+                // Initial fetch
+                await fetchTransactions(minAmount);
+                
+                // Set up polling
+                trackingInterval = setInterval(() => fetchTransactions(minAmount), 30000);
             } else {
-                try {
-                    await fetch('/whale-watch/stop', { method: 'POST' });
-                    button.textContent = 'Start Whale Watch';
-                    isTracking = false;
-                    clearInterval(trackingInterval);
-                    const stopMessage = document.createElement('div');
-                    stopMessage.textContent = 'Whale tracking stopped';
-                    whaleTransactions.insertBefore(stopMessage, whaleTransactions.firstChild);
-                } catch (error) {
-                    console.error('Error stopping tracker:', error);
-                }
+                button.textContent = 'Start Whale Watch';
+                isTracking = false;
+                clearInterval(trackingInterval);
+                whaleTransactions.insertBefore(
+                    document.createElement('div')
+                        .appendChild(document.createTextNode('Whale tracking stopped')),
+                    whaleTransactions.firstChild
+                );
             }
         });
     }
