@@ -38,3 +38,16 @@
 .checkbox-group input[type="checkbox"] {
     margin-right: 8px;
 }
+
+.whale-transactions {
+    margin-top: 20px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.whale-alert {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
