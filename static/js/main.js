@@ -59,16 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultSection.innerHTML = '<div class="error">Failed to fetch predictions</div>';
             }
         });
+        
     });
 
     // Whale Watch functionality
     const whaleTab = document.getElementById('whale');
     if (whaleTab) {
         const form = whaleTab.querySelector('form');
-        const resultSection = document.createElement('div');
-        resultSection.className = 'whale-transactions';
-        whaleTab.appendChild(resultSection);
-
+        const resultSection = whaleTab.querySelector('.whale-transactions');
         let isTracking = false;
         let trackingInterval;
 
@@ -79,25 +77,41 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isTracking) {
                 // Start tracking
                 try {
-                    await fetch('/whale-watch/start', { method: 'POST' });
-                    button.textContent = 'Stop Tracking';
-                    isTracking = true;
-                    
-                    // Poll for new transactions
-                    trackingInterval = setInterval(async () => {
-                        const response = await fetch('/whale-watch/transactions');
-                        const data = await response.json();
-                        if (data.output) {
-                            const alert = document.createElement('div');
-                            alert.className = 'whale-alert';
-                            alert.style.whiteSpace = 'pre-wrap';
-                            alert.style.fontFamily = 'monospace';
-                            alert.innerHTML = data.output;
-                            resultSection.insertBefore(alert, resultSection.firstChild);
-                        }
-                    }, 30000); // Check every 30 seconds
+                    const response = await fetch('/whale-watch/start', { 
+                        method: 'POST' 
+                    });
+                    if (response.ok) {
+                        button.textContent = 'Stop Tracking';
+                        isTracking = true;
+                        resultSection.innerHTML = '<div>Starting whale watch...</div>';
+                        
+                        // Poll for new transactions
+                        trackingInterval = setInterval(async () => {
+                            try {
+                                const txResponse = await fetch('/whale-watch/transactions');
+                                const data = await txResponse.json();
+                                if (data.output) {
+                                    const txDiv = document.createElement('div');
+                                    txDiv.className = 'whale-alert';
+                                    txDiv.style.whiteSpace = 'pre-wrap';
+                                    txDiv.style.fontFamily = 'monospace';
+                                    txDiv.innerHTML = data.output
+                                        .replace(/🟢/g, '<span style="color: #28a745">🟢</span>')
+                                        .replace(/🟡/g, '<span style="color: #ffc107">🟡</span>')
+                                        .replace(/⚪/g, '<span style="color: #6c757d">⚪</span>')
+                                        .replace(/🔵/g, '<span style="color: #17a2b8">🔵</span>')
+                                        .replace(/↑/g, '<span style="color: #28a745">↑</span>')
+                                        .replace(/↓/g, '<span style="color: #dc3545">↓</span>');
+                                    resultSection.insertBefore(txDiv, resultSection.firstChild);
+                                }
+                            } catch (error) {
+                                console.error('Error fetching transactions:', error);
+                            }
+                        }, 30000); // Check every 30 seconds
+                    }
                 } catch (error) {
-                    console.error('Error:', error);
+                    console.error('Error starting tracker:', error);
+                    resultSection.innerHTML = '<div class="error">Failed to start whale tracking</div>';
                 }
             } else {
                 // Stop tracking
@@ -106,8 +120,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     button.textContent = 'Track Whales';
                     isTracking = false;
                     clearInterval(trackingInterval);
+                    resultSection.insertBefore(
+                        document.createElement('div').appendChild(
+                            document.createTextNode('Whale tracking stopped')
+                        ),
+                        resultSection.firstChild
+                    );
                 } catch (error) {
-                    console.error('Error:', error);
+                    console.error('Error stopping tracker:', error);
                 }
             }
         });
