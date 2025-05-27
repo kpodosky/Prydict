@@ -8,6 +8,7 @@ import (
     "os"
     "os/exec"
     
+    
 )
 
 func main() {
@@ -114,15 +115,50 @@ func handlePredict(w http.ResponseWriter, r *http.Request) {
     }
 }
 
-// Add these new handler functions
+func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodGet {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
+    
+    w.Header().Set("Content-Type", "application/json")
+    
+    // Run the Python script with full path
+    cmd := exec.Command("python3", "/home/kilanko/APPs/prydict/report bitcoin.py")
+    cmd.Dir = "/home/kilanko/APPs/prydict" // Set working directory
+    
+    // Capture both stdout and stderr
+    output, err := cmd.CombinedOutput()
+    if err != nil {
+        log.Printf("Error running Python script: %v", err)
+        http.Error(w, "Failed to get whale transactions", http.StatusInternalServerError)
+        return
+    }
+    
+    // Return the output as JSON
+    response := map[string]string{
+        "output": string(output),
+    }
+    
+    if err := json.NewEncoder(w).Encode(response); err != nil {
+        log.Printf("Error encoding response: %v", err)
+        http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+        return
+    }
+}
+
 func handleWhaleWatchStart(w http.ResponseWriter, r *http.Request) {
     if r.Method != http.MethodPost {
         http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
         return
     }
     
-    cmd := exec.Command("python3", "report bitcoin.py")
+    // Start the Python script in background
+    cmd := exec.Command("python3", "/home/kilanko/APPs/prydict/report bitcoin.py")
+    cmd.Dir = "/home/kilanko/APPs/prydict"
+    
     if err := cmd.Start(); err != nil {
+        log.Printf("Error starting Python script: %v", err)
         http.Error(w, "Failed to start whale tracking", http.StatusInternalServerError)
         return
     }
@@ -136,27 +172,13 @@ func handleWhaleWatchStop(w http.ResponseWriter, r *http.Request) {
         return
     }
     
-    // Add command to stop the Python script
+    // Gracefully stop the Python script
     cmd := exec.Command("pkill", "-f", "report bitcoin.py")
-    cmd.Run()
+    if err := cmd.Run(); err != nil {
+        log.Printf("Error stopping Python script: %v", err)
+        http.Error(w, "Failed to stop whale tracking", http.StatusInternalServerError)
+        return
+    }
     
     w.WriteHeader(http.StatusOK)
-}
-
-func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodGet {
-        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-        return
-    }
-    
-    w.Header().Set("Content-Type", "application/json")
-    
-    cmd := exec.Command("python3", "report bitcoin.py")
-    output, err := cmd.CombinedOutput()
-    if err != nil {
-        http.Error(w, "Failed to get whale transactions", http.StatusInternalServerError)
-        return
-    }
-    
-    json.NewEncoder(w).Encode(map[string]string{"output": string(output)})
 }
