@@ -60,4 +60,56 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Whale Watch functionality
+    const whaleTab = document.getElementById('whale');
+    if (whaleTab) {
+        const form = whaleTab.querySelector('form');
+        const resultSection = document.createElement('div');
+        resultSection.className = 'whale-transactions';
+        whaleTab.appendChild(resultSection);
+
+        let isTracking = false;
+        let trackingInterval;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const button = form.querySelector('button');
+
+            if (!isTracking) {
+                // Start tracking
+                try {
+                    await fetch('/whale-watch/start', { method: 'POST' });
+                    button.textContent = 'Stop Tracking';
+                    isTracking = true;
+                    
+                    // Poll for new transactions
+                    trackingInterval = setInterval(async () => {
+                        const response = await fetch('/whale-watch/transactions');
+                        const data = await response.json();
+                        if (data.output) {
+                            const alert = document.createElement('div');
+                            alert.className = 'whale-alert';
+                            alert.style.whiteSpace = 'pre-wrap';
+                            alert.style.fontFamily = 'monospace';
+                            alert.innerHTML = data.output;
+                            resultSection.insertBefore(alert, resultSection.firstChild);
+                        }
+                    }, 30000); // Check every 30 seconds
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            } else {
+                // Stop tracking
+                try {
+                    await fetch('/whale-watch/stop', { method: 'POST' });
+                    button.textContent = 'Track Whales';
+                    isTracking = false;
+                    clearInterval(trackingInterval);
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        });
+    }
 });
