@@ -288,6 +288,34 @@
 
         <div id="whale" class="tab-content">
             <form class="whale-form">
+                <div class="form-group">
+                    <label for="minAmount">Minimum Transaction Amount (BTC)</label>
+                    <input type="number" id="minAmount" name="minAmount" 
+                           min="0.1" step="0.1" value="100" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Transaction Types to Watch</label>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="txTypes" value="exchange" checked>
+                            Exchange Transfers
+                        </label>
+                        <label>
+                            <input type="checkbox" name="txTypes" value="whale" checked>
+                            Whale Movements
+                        </label>
+                        <label>
+                            <input type="checkbox" name="txTypes" value="mining" checked>
+                            Mining Pools
+                        </label>
+                        <label>
+                            <input type="checkbox" name="txTypes" value="institutional" checked>
+                            Institutional
+                        </label>
+                    </div>
+                </div>
+
                 <button type="submit">Start Whale Watch</button>
             </form>
             <div class="whale-transactions"></div>
