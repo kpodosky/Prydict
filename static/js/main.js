@@ -21,51 +21,38 @@ document.addEventListener('DOMContentLoaded', () => {
             const cryptoType = document.querySelector('.tab-button.active').dataset.tab;
             const resultSection = document.querySelector('.result-section');
             
-            // Show loading state
             resultSection.innerHTML = '<div>Loading predictions...</div>';
             
             try {
                 const response = await fetch('/predict', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         cryptoType: cryptoType,
                         priority: 'all'
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
+                if (!response.ok) throw new Error('Network response was not ok');
+                
                 const data = await response.json();
-                resultSection.innerHTML = ''; // Clear loading message
+                resultSection.innerHTML = '';
 
-                // Create fee predictions display
-                const speeds = ['fastest', 'fast', 'standard', 'economic', 'minimum'];
-                speeds.forEach(speed => {
-                    if (data[speed]) {
-                        const feeBox = document.createElement('div');
-                        feeBox.className = 'fee-box';
-                        feeBox.innerHTML = `
-                            <div class="fee-prediction">
-                                <h3>${speed.toUpperCase()}</h3>
-                                <p class="fee">Fee: ${data[speed].fee}</p>
-                                <p class="time">Time: ${data[speed].time}</p>
-                            </div>
-                        `;
-                        resultSection.appendChild(feeBox);
-                    }
+                Object.entries(data).forEach(([speed, info]) => {
+                    const feeBox = document.createElement('div');
+                    feeBox.className = 'fee-box';
+                    feeBox.innerHTML = `
+                        <div class="fee-prediction">
+                            <h3>${speed.toUpperCase()}</h3>
+                            <p class="fee">Fee: ${info.fee}</p>
+                            <p class="time">Expected Time: ${info.time}</p>
+                        </div>
+                    `;
+                    resultSection.appendChild(feeBox);
                 });
             } catch (error) {
                 console.error('Error:', error);
-                resultSection.innerHTML = `
-                    <div class="error-message">
-                        Failed to fetch fee predictions. Please try again.
-                    </div>
-                `;
+                resultSection.innerHTML = '<div class="error-message">Failed to fetch fee predictions</div>';
             }
         });
     }
