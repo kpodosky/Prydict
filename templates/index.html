@@ -133,6 +133,35 @@
             width: 100%;
             background: rgba(0, 0, 0, 0.3);
         }
+
+        /* Add to your existing styles in index.html or styles.css */
+        .whale-transactions {
+            margin-top: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .whale-alert {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: transform 0.2s ease;
+        }
+
+        .whale-alert:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Color coding for transaction types */
+        .whale-alert .deposit { color: #28a745; }
+        .whale-alert .withdrawal { color: #dc3545; }
+        .whale-alert .internal { color: #ffc107; }
+        .whale-alert .unknown { color: #17a2b8; }
+
+        /* Arrow indicators */
+        .whale-alert .arrow-up { color: #28a745; }
+        .whale-alert .arrow-down { color: #dc3545; }
     </style>
 </head>
 <body>
@@ -271,6 +300,9 @@
                 </label>
                 <button type="submit">Track Whales</button>
             </form>
+            <div class="whale-transactions">
+                <!-- Whale transaction alerts will be injected here by JavaScript -->
+            </div>
         </div>
 
         <div id="result">
