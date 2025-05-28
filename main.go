@@ -126,66 +126,23 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     
     w.Header().Set("Content-Type", "application/json")
     
-    // Get absolute path to script
-    absPath, err := filepath.Abs("report bitcoin.py")
-    if err != nil {
-        log.Printf("Error getting absolute path: %v", err)
-        http.Error(w, "Failed to locate script", http.StatusInternalServerError)
-        return
-    }
-    
-    // Set up command with working directory
-    cmd := exec.Command("python3", absPath)
-    cmd.Dir = filepath.Dir(absPath)
-    
-    // Set up pipes for stdout and stderr
-    stdout, err := cmd.StdoutPipe()
-    if err != nil {
-        log.Printf("Error creating stdout pipe: %v", err)
-        http.Error(w, "Failed to set up command", http.StatusInternalServerError)
-        return
-    }
-    
-    stderr, err := cmd.StderrPipe()
-    if err != nil {
-        log.Printf("Error creating stderr pipe: %v", err)
-        http.Error(w, "Failed to set up command", http.StatusInternalServerError)
-        return
-    }
-    
-    // Start the command
-    if err := cmd.Start(); err != nil {
-        log.Printf("Error starting command: %v", err)
-        http.Error(w, "Failed to run script", http.StatusInternalServerError)
-        return
-    }
-    
-    // Read output and errors
-    outBytes, err := io.ReadAll(stdout)
-    if err != nil {
-        log.Printf("Error reading stdout: %v", err)
-        http.Error(w, "Failed to read output", http.StatusInternalServerError)
-        return
-    }
-    
-    errBytes, err := io.ReadAll(stderr)
-    if err != nil {
-        log.Printf("Error reading stderr: %v", err)
-        http.Error(w, "Failed to read errors", http.StatusInternalServerError)
-        return
-    }
-    
-    // Wait for command to complete
-    if err := cmd.Wait(); err != nil {
-        log.Printf("Error waiting for command: %v", err)
-        log.Printf("stderr: %s", string(errBytes))
-        http.Error(w, "Script execution failed", http.StatusInternalServerError)
-        return
-    }
-    
-    // Send response with output
+    // Create dummy whale transaction output
+    dummyOutput := `🟢 Large Transaction Detected!
+From: 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa (Binance Hot Wallet)
+To: 3FaA4dJuuvJFyUHbqHLkZKJcuDPugvG3zE (Unknown)
+Amount: ↑ 1,234.56 BTC ($45,678,900)
+Time: 2025-05-28 12:34:56 UTC
+Hash: 0x123...abc
+
+🔵 Whale Movement Alert!
+From: bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh (MicroStrategy)
+To: 34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo (Grayscale)
+Amount: ↓ 500.00 BTC ($18,500,000)
+Time: 2025-05-28 12:35:00 UTC
+Hash: 0x456...def`
+
     response := map[string]string{
-        "output": string(outBytes),
+        "output": dummyOutput,
     }
     
     if err := json.NewEncoder(w).Encode(response); err != nil {
