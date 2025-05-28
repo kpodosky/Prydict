@@ -4,6 +4,7 @@ import (
     "encoding/json"
     "fmt"
     "html/template"
+    "io"
     "log"
     "net/http"
     "os"
@@ -125,22 +126,66 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     
     w.Header().Set("Content-Type", "application/json")
     
-    // Use relative path for Render deployment
-    scriptPath := filepath.Join(".", "report bitcoin.py")
-    cmd := exec.Command("python3", scriptPath)
-    cmd.Dir = "."  // Use current directory
-    
-    // Capture output and handle errors
-    output, err := cmd.CombinedOutput()
+    // Get absolute path to script
+    absPath, err := filepath.Abs("report bitcoin.py")
     if err != nil {
-        log.Printf("Error running Python script: %v", err)
-        http.Error(w, fmt.Sprintf("Failed to run script: %v", err), http.StatusInternalServerError)
+        log.Printf("Error getting absolute path: %v", err)
+        http.Error(w, "Failed to locate script", http.StatusInternalServerError)
         return
     }
     
-    // Use the output in the response
+    // Set up command with working directory
+    cmd := exec.Command("python3", absPath)
+    cmd.Dir = filepath.Dir(absPath)
+    
+    // Set up pipes for stdout and stderr
+    stdout, err := cmd.StdoutPipe()
+    if err != nil {
+        log.Printf("Error creating stdout pipe: %v", err)
+        http.Error(w, "Failed to set up command", http.StatusInternalServerError)
+        return
+    }
+    
+    stderr, err := cmd.StderrPipe()
+    if err != nil {
+        log.Printf("Error creating stderr pipe: %v", err)
+        http.Error(w, "Failed to set up command", http.StatusInternalServerError)
+        return
+    }
+    
+    // Start the command
+    if err := cmd.Start(); err != nil {
+        log.Printf("Error starting command: %v", err)
+        http.Error(w, "Failed to run script", http.StatusInternalServerError)
+        return
+    }
+    
+    // Read output and errors
+    outBytes, err := io.ReadAll(stdout)
+    if err != nil {
+        log.Printf("Error reading stdout: %v", err)
+        http.Error(w, "Failed to read output", http.StatusInternalServerError)
+        return
+    }
+    
+    errBytes, err := io.ReadAll(stderr)
+    if err != nil {
+        log.Printf("Error reading stderr: %v", err)
+        http.Error(w, "Failed to read errors", http.StatusInternalServerError)
+        return
+    }
+    
+    // Wait for command to complete
+    if err := cmd.Wait(); err != nil {
+        log.Printf("Error waiting for command: %v", err)
+        log.Printf("stderr: %s", string(errBytes))
+        http.Error(w, "Script execution failed", http.StatusInternalServerError)
+        return
+    }
+    
+    // Send response with output
     response := map[string]string{
-        "output": string(output),
+        "output": string(outBytes),
     }
     
     if err := json.NewEncoder(w).Encode(response); err != nil {
