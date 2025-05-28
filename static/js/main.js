@@ -59,56 +59,72 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultSection.innerHTML = '<div class="error">Failed to fetch predictions</div>';
             }
         });
+        
     });
 
     // Whale Watch functionality
-    const whaleTab = document.getElementById('whale');
-    if (whaleTab) {
-        const form = whaleTab.querySelector('form');
-        const resultSection = document.createElement('div');
-        resultSection.className = 'whale-transactions';
-        whaleTab.appendChild(resultSection);
-
+    const whaleWatchTab = document.querySelector('#whale');
+    if (whaleWatchTab) {
+        const whaleForm = whaleWatchTab.querySelector('form');
+        const whaleTransactions = whaleWatchTab.querySelector('.whale-transactions');
         let isTracking = false;
         let trackingInterval;
 
-        form.addEventListener('submit', async (e) => {
+        // Initial fetch to show transactions immediately
+        async function fetchTransactions(minAmount) {
+            try {
+                const response = await fetch(`/whale-watch/transactions?minAmount=${minAmount}`);
+                if (!response.ok) throw new Error('Failed to fetch transactions');
+                
+                const data = await response.json();
+                if (data.output) {
+                    const txDiv = document.createElement('div');
+                    txDiv.className = 'whale-alert';
+                    txDiv.style.whiteSpace = 'pre-wrap';
+                    txDiv.style.fontFamily = 'monospace';
+                    
+                    // Format the output with colors
+                    const formattedOutput = data.output
+                        .replace(/🟢/g, '<span style="color: #28a745">🟢</span>')
+                        .replace(/🟡/g, '<span style="color: #ffc107">🟡</span>')
+                        .replace(/⚪/g, '<span style="color: #6c757d">⚪</span>')
+                        .replace(/🔵/g, '<span style="color: #17a2b8">🔵</span>')
+                        .replace(/↑/g, '<span style="color: #28a745">↑</span>')
+                        .replace(/↓/g, '<span style="color: #dc3545">↓</span>');
+                    
+                    txDiv.innerHTML = formattedOutput;
+                    whaleTransactions.insertBefore(txDiv, whaleTransactions.firstChild);
+                }
+            } catch (error) {
+                console.error('Error fetching transactions:', error);
+                whaleTransactions.innerHTML = '<div class="error">Failed to fetch whale transactions</div>';
+            }
+        }
+
+        whaleForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const button = form.querySelector('button');
+            const button = whaleForm.querySelector('button');
+            const minAmount = document.getElementById('minAmount').value;
 
             if (!isTracking) {
-                // Start tracking
-                try {
-                    await fetch('/whale-watch/start', { method: 'POST' });
-                    button.textContent = 'Stop Tracking';
-                    isTracking = true;
-                    
-                    // Poll for new transactions
-                    trackingInterval = setInterval(async () => {
-                        const response = await fetch('/whale-watch/transactions');
-                        const data = await response.json();
-                        if (data.output) {
-                            const alert = document.createElement('div');
-                            alert.className = 'whale-alert';
-                            alert.style.whiteSpace = 'pre-wrap';
-                            alert.style.fontFamily = 'monospace';
-                            alert.innerHTML = data.output;
-                            resultSection.insertBefore(alert, resultSection.firstChild);
-                        }
-                    }, 30000); // Check every 30 seconds
-                } catch (error) {
-                    console.error('Error:', error);
-                }
+                button.textContent = 'Stop Tracking';
+                isTracking = true;
+                whaleTransactions.innerHTML = '<div>Starting whale watch...</div>';
+                
+                // Initial fetch
+                await fetchTransactions(minAmount);
+                
+                // Set up polling
+                trackingInterval = setInterval(() => fetchTransactions(minAmount), 30000);
             } else {
-                // Stop tracking
-                try {
-                    await fetch('/whale-watch/stop', { method: 'POST' });
-                    button.textContent = 'Track Whales';
-                    isTracking = false;
-                    clearInterval(trackingInterval);
-                } catch (error) {
-                    console.error('Error:', error);
-                }
+                button.textContent = 'Start Whale Watch';
+                isTracking = false;
+                clearInterval(trackingInterval);
+                whaleTransactions.insertBefore(
+                    document.createElement('div')
+                        .appendChild(document.createTextNode('Whale tracking stopped')),
+                    whaleTransactions.firstChild
+                );
             }
         });
     }
