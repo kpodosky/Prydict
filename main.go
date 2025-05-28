@@ -8,6 +8,7 @@ import (
     "net/http"
     "os"
     "os/exec"
+    "path/filepath"
     "strings"
 )
 
@@ -124,12 +125,12 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     
     w.Header().Set("Content-Type", "application/json")
     
-    // Specify the full path and ensure script exists
-    scriptPath := "/home/kilanko/APPs/prydict/report bitcoin.py"
+    // Use relative path for Render deployment
+    scriptPath := filepath.Join(".", "report bitcoin.py")
     cmd := exec.Command("python3", scriptPath)
-    cmd.Dir = "/home/kilanko/APPs/prydict"  // Set working directory
+    cmd.Dir = "."  // Use current directory
     
-    // Capture output
+    // Capture output and handle errors
     output, err := cmd.CombinedOutput()
     if err != nil {
         log.Printf("Error running Python script: %v", err)
@@ -137,7 +138,7 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
         return
     }
     
-    // Return the output
+    // Use the output in the response
     response := map[string]string{
         "output": string(output),
     }
