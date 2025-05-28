@@ -123,12 +123,18 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     }
     
     w.Header().Set("Content-Type", "application/json")
-
+    
+    // Get minimum amount from query params
     minAmount := r.URL.Query().Get("minAmount")
     if minAmount == "" {
         minAmount = "100" // default value
     }
-
+    
+    // Run Python script with absolute paths
+    cmd := exec.Command("python3", "report bitcoin.py")
+    cmd.Dir = "/home/kilanko/APPs/prydict"
+    
+    // Capture both stdout and stderr
     output, err := cmd.CombinedOutput()
     if err != nil {
         log.Printf("Error running Python script: %v", err)
@@ -136,6 +142,13 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
         return
     }
     
+    // Send response
+    if err := json.NewEncoder(w).Encode(map[string]string{
+        "output": string(output),
+    }); err != nil {
+        log.Printf("Error encoding response: %v", err)
+        http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+    }
 }
 
 func handleWhaleWatchStart(w http.ResponseWriter, r *http.Request) {
