@@ -4,6 +4,7 @@ import (
     "encoding/json"
     "fmt"
     "html/template"
+    "io"
     "log"
     "net/http"
     "os"
@@ -124,22 +125,60 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     
     w.Header().Set("Content-Type", "application/json")
 
-    // Execute the Python script and capture real output
-    cmd := exec.Command("python3", "report bitcoin.py")
-    cmd.Dir = "/home/kilanko/APPs/prydict"
-    
-    output, err := cmd.CombinedOutput()
+    // Execute Python script with absolute path
+    scriptPath := "prydict/report bitcoin.py"
+    cmd := exec.Command("python3", scriptPath)
+    cmd.Dir = "prydict"
+
+    // Set up pipes for output and errors
+    stdout, err := cmd.StdoutPipe()
     if err != nil {
-        log.Printf("Error running Python script: %v", err)
-        http.Error(w, "Failed to get whale transactions", http.StatusInternalServerError)
+        log.Printf("Error creating stdout pipe: %v", err)
+        http.Error(w, "Failed to set up command", http.StatusInternalServerError)
         return
     }
-    
-    // Send the actual output from the Python script
+
+    stderr, err := cmd.StderrPipe()
+    if err != nil {
+        log.Printf("Error creating stderr pipe: %v", err)
+        http.Error(w, "Failed to set up command", http.StatusInternalServerError)
+        return
+    }
+
+    // Start the command
+    if err := cmd.Start(); err != nil {
+        log.Printf("Failed to start script: %v", err)
+        http.Error(w, "Failed to start whale tracking", http.StatusInternalServerError)
+        return
+    }
+
+    // Read output
+    output, err := io.ReadAll(stdout)
+    if err != nil {
+        log.Printf("Error reading output: %v", err)
+        http.Error(w, "Failed to read whale transactions", http.StatusInternalServerError)
+        return
+    }
+
+    // Check for errors
+    errOutput, err := io.ReadAll(stderr)
+    if err != nil {
+        log.Printf("Error reading stderr: %v", err)
+        log.Printf("stderr: %s", string(errOutput))
+    }
+
+    // Wait for command to finish
+    if err := cmd.Wait(); err != nil {
+        log.Printf("Error waiting for script: %v", err)
+        http.Error(w, "Script execution failed", http.StatusInternalServerError)
+        return
+    }
+
+    // Send response
     response := map[string]string{
         "output": string(output),
     }
-    
+
     if err := json.NewEncoder(w).Encode(response); err != nil {
         log.Printf("Error encoding response: %v", err)
         http.Error(w, "Failed to encode response", http.StatusInternalServerError)
