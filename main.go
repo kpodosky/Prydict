@@ -123,22 +123,28 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     }
     
     w.Header().Set("Content-Type", "application/json")
-    
-    // Create dummy whale transaction output
-    dummyOutput := `🟢 Large Transaction Detected!
-From: 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa (Binance Hot Wallet)
-To: 3FaA4dJuuvJFyUHbqHLkZKJcuDPugvG3zE (Unknown)
-Amount: ↑ 1,234.56 BTC ($45,678,900)
-Time: 2025-05-28 12:34:56 UTC
-Hash: 0x123...abc
 
-🔵 Whale Movement Alert!
-From: bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh (MicroStrategy)
-To: 34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo (Grayscale)
-Amount: ↓ 500.00 BTC ($18,500,000)
-Time: 2025-05-28 12:35:00 UTC
-Hash: 0x456...def`
+    // Example whale transaction output matching Python script format
+    dummyOutput := `🚨 Bitcoin UNKNOWN TRANSFER Alert! 2025-05-29 10:51:07
 
+Transaction Details:
+------------------
+Hash:   cd75779bf163b99eab116bf5438eef4ed2188f77c16876fb12f22105175edbc8
+Amount: 199.8522 BTC     ($5,995,566.00)
+Fee:    156 sats     ($0.17)
+
+Address Information:
+------------------
+From:    bc1q0qfzuge7vr5s2xkczrjkccmxemlyyn8mhx298v (UNKNOWN)
+History:  [↑3|↓0] Total: ↑444.18|↓0.00 BTC
+
+To:      3BHXygmhNMaCcNn76S8DLdnZ5ucPtNtWGb (UNKNOWN)
+History:  [↑0|↓1] Total: ↑0.00|↓199.85 BTC
+
+Market Impact: Impact calculation pending...
+Analysis: 🔵 SIGNIFICANT unknown movement - Monitor closely`
+
+    // Send the response
     response := map[string]string{
         "output": dummyOutput,
     }
