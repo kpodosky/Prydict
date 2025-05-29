@@ -124,29 +124,20 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     
     w.Header().Set("Content-Type", "application/json")
 
-    // Example whale transaction output matching Python script format
-    dummyOutput := `🚨 Bitcoin UNKNOWN TRANSFER Alert! 2025-05-29 10:51:07
-
-Transaction Details:
-------------------
-Hash:   cd75779bf163b99eab116bf5438eef4ed2188f77c16876fb12f22105175edbc8
-Amount: 199.8522 BTC     ($5,995,566.00)
-Fee:    156 sats     ($0.17)
-
-Address Information:
-------------------
-From:    bc1q0qfzuge7vr5s2xkczrjkccmxemlyyn8mhx298v (UNKNOWN)
-History:  [↑3|↓0] Total: ↑444.18|↓0.00 BTC
-
-To:      3BHXygmhNMaCcNn76S8DLdnZ5ucPtNtWGb (UNKNOWN)
-History:  [↑0|↓1] Total: ↑0.00|↓199.85 BTC
-
-Market Impact: Impact calculation pending...
-Analysis: 🔵 SIGNIFICANT unknown movement - Monitor closely`
-
-    // Send the response
+    // Execute the Python script and capture real output
+    cmd := exec.Command("python3", "report bitcoin.py")
+    cmd.Dir = "/home/kilanko/APPs/prydict"
+    
+    output, err := cmd.CombinedOutput()
+    if err != nil {
+        log.Printf("Error running Python script: %v", err)
+        http.Error(w, "Failed to get whale transactions", http.StatusInternalServerError)
+        return
+    }
+    
+    // Send the actual output from the Python script
     response := map[string]string{
-        "output": dummyOutput,
+        "output": string(output),
     }
     
     if err := json.NewEncoder(w).Encode(response); err != nil {
