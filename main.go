@@ -124,17 +124,19 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     
     w.Header().Set("Content-Type", "application/json")
 
-    // Install required Python package if not present
-    installCmd := exec.Command("pip3", "install", "requests")
-    if err := installCmd.Run(); err != nil {
+    // Install required Python package with --user flag and capture output
+    installCmd := exec.Command("pip3", "install", "--user", "requests")
+    installOutput, err := installCmd.CombinedOutput()
+    if err != nil {
         log.Printf("Error installing requests package: %v", err)
+        log.Printf("Installation output: %s", string(installOutput))
         http.Error(w, "Failed to install dependencies", http.StatusInternalServerError)
         return
     }
 
     // Execute Python script with correct path for Render
     scriptPath := "/opt/render/project/go/src/github.com/kpodosky/Prydict/report_bitcoin.py"
-    cmd := exec.Command("python3", scriptPath)
+    cmd := exec.Command("python3", "-m", "pip", "install", "--user", "requests", "&&", "python3", scriptPath)
     cmd.Dir = "/opt/render/project/go/src/github.com/kpodosky/Prydict"
 
     output, err := cmd.CombinedOutput()
