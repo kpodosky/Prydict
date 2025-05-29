@@ -127,45 +127,39 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
 
     workDir := "/opt/render/project/go/src/github.com/kpodosky/Prydict"
-    venvPath := filepath.Join(workDir, "venv")
+    scriptPath := filepath.Join(workDir, "report_bitcoin.py")
 
-    // Create virtual environment if it doesn't exist
-    if _, err := os.Stat(venvPath); os.IsNotExist(err) {
-        createVenvCmd := exec.Command("python3", "-m", "venv", venvPath)
-        createVenvCmd.Dir = workDir
-        if err := createVenvCmd.Run(); err != nil {
-            log.Printf("Error creating virtual environment: %v", err)
-            http.Error(w, "Failed to create virtual environment", http.StatusInternalServerError)
+    // Log current state
+    log.Printf("Working directory: %s", workDir)
+    log.Printf("Script path: %s", scriptPath)
+
+    // Check if script exists
+    if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
+        log.Printf("Script not found at: %s", scriptPath)
+        // Try alternative path without underscore
+        scriptPath = filepath.Join(workDir, "report bitcoin.py")
+        if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
+            log.Printf("Script also not found at alternative path: %s", scriptPath)
+            http.Error(w, "Script not found", http.StatusInternalServerError)
             return
         }
     }
 
-    // Install requests package in virtual environment
-    pipPath := filepath.Join(venvPath, "bin", "pip")
-    installCmd := exec.Command(pipPath, "install", "requests")
-    installOutput, err := installCmd.CombinedOutput()
-    if err != nil {
-        log.Printf("Error installing requests package: %v", err)
-        log.Printf("Installation output: %s", string(installOutput))
-        http.Error(w, "Failed to install dependencies", http.StatusInternalServerError)
-        return
-    }
-
-    // Execute Python script using virtual environment's Python
-    pythonPath := filepath.Join(venvPath, "bin", "python3")
-    scriptPath := filepath.Join(workDir, "report bitcoin.py")
-    cmd := exec.Command(pythonPath, scriptPath)
+    // Execute Python script directly
+    cmd := exec.Command("python3", scriptPath)
     cmd.Dir = workDir
 
+    // Capture both stdout and stderr
     output, err := cmd.CombinedOutput()
     if err != nil {
         log.Printf("Error running Python script: %v", err)
-        log.Printf("Working directory: %s", cmd.Dir)
-        log.Printf("Script path: %s", scriptPath)
-        log.Printf("Output: %s", string(output))
+        log.Printf("Script output: %s", string(output))
         http.Error(w, "Failed to get whale transactions", http.StatusInternalServerError)
         return
     }
+
+    // Log successful output
+    log.Printf("Script executed successfully")
 
     response := map[string]string{
         "output": string(output),
