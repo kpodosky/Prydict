@@ -124,42 +124,19 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     
     w.Header().Set("Content-Type", "application/json")
 
-    // Get current working directory
-    currentDir, err := os.Getwd()
-    if err != nil {
-        log.Printf("Error getting current directory: %v", err)
-        http.Error(w, "Server error", http.StatusInternalServerError)
-        return
-    }
-    log.Printf("Current directory: %s", currentDir)
-
-    // Check if we're on Render or local
-    scriptPath := "report bitcoin.py"
-    workDir := currentDir
-
-    // If directory contains "Prydict", adjust paths
-    if strings.Contains(currentDir, "Prydict") {
-        scriptPath = "report_bitcoin.py"
-        workDir = currentDir
-    } else {
-        // Local development path
-        scriptPath = "report_bitcoin.py"
-        workDir = "Prydict/report_bitcoin.py"
-    }
-
-    // Verify script exists
-    fullPath := fmt.Sprintf("%s/%s", workDir, scriptPath)
-    if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-        log.Printf("Script not found at: %s", fullPath)
-        http.Error(w, "Script not found", http.StatusInternalServerError)
+    // Install required Python package if not present
+    installCmd := exec.Command("pip3", "install", "requests")
+    if err := installCmd.Run(); err != nil {
+        log.Printf("Error installing requests package: %v", err)
+        http.Error(w, "Failed to install dependencies", http.StatusInternalServerError)
         return
     }
 
-    // Execute Python script
+    // Execute Python script with correct path for Render
+    scriptPath := "/opt/render/project/go/src/github.com/kpodosky/Prydict/report_bitcoin.py"
     cmd := exec.Command("python3", scriptPath)
-    cmd.Dir = workDir
+    cmd.Dir = "/opt/render/project/go/src/github.com/kpodosky/Prydict"
 
-    // Execute and capture output
     output, err := cmd.CombinedOutput()
     if err != nil {
         log.Printf("Error running Python script: %v", err)
@@ -199,11 +176,11 @@ func handleWhaleWatchStart(w http.ResponseWriter, r *http.Request) {
     }
 
     // Use correct Render path
-    cmd := exec.Command("python3", 
-        "Prydict/report bitcoin.py",
+    scriptPath := "/opt/render/project/go/src/github.com/kpodosky/Prydict/report_bitcoin.py"
+    cmd := exec.Command("python3", scriptPath,
         "--min-btc", fmt.Sprintf("%.2f", request.MinAmount),
         "--types", strings.Join(request.TxTypes, ","))
-    cmd.Dir = "Prydict"
+    cmd.Dir = "/opt/render/project/go/src/github.com/kpodosky/Prydict"
 
     if err := cmd.Start(); err != nil {
         log.Printf("Error starting Python script: %v", err)
