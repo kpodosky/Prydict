@@ -8,6 +8,8 @@ import (
     "net/http"
     "os"
     "os/exec"
+
+    "path/filepath"
     "strings"
 )
 
@@ -124,8 +126,23 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     
     w.Header().Set("Content-Type", "application/json")
 
-    // Install required Python package with user-level installation
-    installCmd := exec.Command("python3", "-m", "pip", "install", "--user", "requests")
+    workDir := "/opt/render/project/go/src/github.com/kpodosky/Prydict"
+    venvPath := filepath.Join(workDir, "venv")
+
+    // Create virtual environment if it doesn't exist
+    if _, err := os.Stat(venvPath); os.IsNotExist(err) {
+        createVenvCmd := exec.Command("python3", "-m", "venv", venvPath)
+        createVenvCmd.Dir = workDir
+        if err := createVenvCmd.Run(); err != nil {
+            log.Printf("Error creating virtual environment: %v", err)
+            http.Error(w, "Failed to create virtual environment", http.StatusInternalServerError)
+            return
+        }
+    }
+
+    // Install requests package in virtual environment
+    pipPath := filepath.Join(venvPath, "bin", "pip")
+    installCmd := exec.Command(pipPath, "install", "requests")
     installOutput, err := installCmd.CombinedOutput()
     if err != nil {
         log.Printf("Error installing requests package: %v", err)
@@ -134,12 +151,12 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Execute Python script with correct path for Render
-    scriptPath := "/opt/render/project/go/src/github.com/kpodosky/Prydict/report_bitcoin.py"
-    cmd := exec.Command("python3", scriptPath)
-    cmd.Dir = "/opt/render/project/go/src/github.com/kpodosky/Prydict"
+    // Execute Python script using virtual environment's Python
+    pythonPath := filepath.Join(venvPath, "bin", "python3")
+    scriptPath := filepath.Join(workDir, "report bitcoin.py")
+    cmd := exec.Command(pythonPath, scriptPath)
+    cmd.Dir = workDir
 
-    // Execute and capture output
     output, err := cmd.CombinedOutput()
     if err != nil {
         log.Printf("Error running Python script: %v", err)
