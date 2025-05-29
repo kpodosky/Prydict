@@ -125,56 +125,22 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     
     w.Header().Set("Content-Type", "application/json")
 
-    // Execute Python script with absolute path
-    scriptPath := "prydict/report bitcoin.py"
+    // Use correct Render path
+    scriptPath := "Prydict/report bitcoin.py"
     cmd := exec.Command("python3", scriptPath)
-    cmd.Dir = "prydict"
+    cmd.Dir = "Prydict"  // Set working directory to match Render's structure
 
-    // Set up pipes for output and errors
-    stdout, err := cmd.StdoutPipe()
+    // Execute and capture output directly
+    output, err := cmd.CombinedOutput()
     if err != nil {
-        log.Printf("Error creating stdout pipe: %v", err)
-        http.Error(w, "Failed to set up command", http.StatusInternalServerError)
+        log.Printf("Error running Python script: %v", err)
+        log.Printf("Working directory: %s", cmd.Dir)
+        log.Printf("Script path: %s", scriptPath)
+        log.Printf("Output: %s", string(output))
+        http.Error(w, "Failed to get whale transactions", http.StatusInternalServerError)
         return
     }
 
-    stderr, err := cmd.StderrPipe()
-    if err != nil {
-        log.Printf("Error creating stderr pipe: %v", err)
-        http.Error(w, "Failed to set up command", http.StatusInternalServerError)
-        return
-    }
-
-    // Start the command
-    if err := cmd.Start(); err != nil {
-        log.Printf("Failed to start script: %v", err)
-        http.Error(w, "Failed to start whale tracking", http.StatusInternalServerError)
-        return
-    }
-
-    // Read output
-    output, err := io.ReadAll(stdout)
-    if err != nil {
-        log.Printf("Error reading output: %v", err)
-        http.Error(w, "Failed to read whale transactions", http.StatusInternalServerError)
-        return
-    }
-
-    // Check for errors
-    errOutput, err := io.ReadAll(stderr)
-    if err != nil {
-        log.Printf("Error reading stderr: %v", err)
-        log.Printf("stderr: %s", string(errOutput))
-    }
-
-    // Wait for command to finish
-    if err := cmd.Wait(); err != nil {
-        log.Printf("Error waiting for script: %v", err)
-        http.Error(w, "Script execution failed", http.StatusInternalServerError)
-        return
-    }
-
-    // Send response
     response := map[string]string{
         "output": string(output),
     }
@@ -203,15 +169,16 @@ func handleWhaleWatchStart(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Construct command with parameters
+    // Use correct Render path
     cmd := exec.Command("python3", 
-        "/home/kilanko/APPs/prydict/report bitcoin.py",
+        "Prydict/report bitcoin.py",
         "--min-btc", fmt.Sprintf("%.2f", request.MinAmount),
         "--types", strings.Join(request.TxTypes, ","))
-    cmd.Dir = "/home/kilanko/APPs/prydict"
+    cmd.Dir = "Prydict"
 
     if err := cmd.Start(); err != nil {
         log.Printf("Error starting Python script: %v", err)
+        log.Printf("Working directory: %s", cmd.Dir)
         http.Error(w, "Failed to start whale tracking", http.StatusInternalServerError)
         return
     }
