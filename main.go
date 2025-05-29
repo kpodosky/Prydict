@@ -124,12 +124,42 @@ func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     
     w.Header().Set("Content-Type", "application/json")
 
-    // Use correct Render path
-    scriptPath := "Prydict/report bitcoin.py"
-    cmd := exec.Command("python3", scriptPath)
-    cmd.Dir = "Prydict"  // Set working directory to match Render's structure
+    // Get current working directory
+    currentDir, err := os.Getwd()
+    if err != nil {
+        log.Printf("Error getting current directory: %v", err)
+        http.Error(w, "Server error", http.StatusInternalServerError)
+        return
+    }
+    log.Printf("Current directory: %s", currentDir)
 
-    // Execute and capture output directly
+    // Check if we're on Render or local
+    scriptPath := "report bitcoin.py"
+    workDir := currentDir
+
+    // If directory contains "Prydict", adjust paths
+    if strings.Contains(currentDir, "Prydict") {
+        scriptPath = "report_bitcoin.py"
+        workDir = currentDir
+    } else {
+        // Local development path
+        scriptPath = "report_bitcoin.py"
+        workDir = "Prydict/report_bitcoin.py"
+    }
+
+    // Verify script exists
+    fullPath := fmt.Sprintf("%s/%s", workDir, scriptPath)
+    if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+        log.Printf("Script not found at: %s", fullPath)
+        http.Error(w, "Script not found", http.StatusInternalServerError)
+        return
+    }
+
+    // Execute Python script
+    cmd := exec.Command("python3", scriptPath)
+    cmd.Dir = workDir
+
+    // Execute and capture output
     output, err := cmd.CombinedOutput()
     if err != nil {
         log.Printf("Error running Python script: %v", err)
