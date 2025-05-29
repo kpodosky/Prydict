@@ -32,10 +32,25 @@ type Transaction struct {
     Analysis    string
 }
 
+var (
+    minAmount float64 = 100.0 // default minimum amount
+)
+
 func init() {
     rand.Seed(time.Now().UnixNano())
 }
 
+// SetMinAmount sets the minimum amount for whale transactions
+func SetMinAmount(amount float64) {
+    minAmount = amount
+}
+
+// ResetSettings resets whale watch settings to defaults
+func ResetSettings() {
+    minAmount = 100.0
+}
+
+// GenerateWhaleTransaction generates a whale transaction alert
 func GenerateWhaleTransaction() string {
     // Create transaction data matching Python script output
     tx := Transaction{
@@ -62,6 +77,11 @@ func GenerateWhaleTransaction() string {
 
     tx.Impact = "Impact calculation pending..."
     tx.Analysis = "🔵 SIGNIFICANT unknown movement - Monitor closely"
+
+    // Skip if below minimum amount
+    if tx.Amount < minAmount {
+        return ""
+    }
 
     // Format output exactly like report_bitcoin.py
     output := fmt.Sprintf(`                                🚨 Bitcoin UNKNOWN TRANSFER Alert! %s
