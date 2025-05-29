@@ -7,20 +7,19 @@ import (
     "log"
     "net/http"
     "os"
-    "os/exec"
-
-    "path/filepath"
     "strings"
+
+    "./whale"
 )
 
 func main() {
     // Create a new mux for routing
     mux := http.NewServeMux()
-    
+
     // Serve static files
     fileServer := http.FileServer(http.Dir("static"))
     mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
-    
+
     // Register route handlers
     mux.HandleFunc("/", handleHome)
     mux.HandleFunc("/predict", handlePredict)
@@ -28,13 +27,13 @@ func main() {
     mux.HandleFunc("/whale-watch/start", handleWhaleWatchStart)
     mux.HandleFunc("/whale-watch/stop", handleWhaleWatchStop)
     mux.HandleFunc("/whale-watch/transactions", handleWhaleTransactions)
-    
+
     // Get port from environment variable
     port := os.Getenv("PORT")
     if port == "" {
         port = "8080"
     }
-    
+
     // Start server with our mux
     log.Printf("Starting server on port %s", port)
     log.Fatal(http.ListenAndServe(":"+port, mux))
@@ -50,15 +49,15 @@ func handlePredict(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
         return
     }
-    
+
     w.Header().Set("Content-Type", "application/json")
-    
+
     // Parse the request body
     var request struct {
         CryptoType string `json:"cryptoType"`
         Priority   string `json:"priority"`
     }
-    
+
     if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
@@ -69,10 +68,10 @@ func handlePredict(w http.ResponseWriter, r *http.Request) {
         Fee  string `json:"fee"`
         Time string `json:"time"`
     }
-    
+
     // Different predictions based on cryptocurrency type
     var predictions map[string]FeeInfo
-    
+
     switch request.CryptoType {
     case "ethereum":
         predictions = map[string]FeeInfo{
@@ -110,59 +109,26 @@ func handlePredict(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Unsupported cryptocurrency type", http.StatusBadRequest)
         return
     }
-    
+
     if err := json.NewEncoder(w).Encode(predictions); err != nil {
         http.Error(w, "Failed to encode response", http.StatusInternalServerError)
         return
     }
 }
 
-
 func handleWhaleTransactions(w http.ResponseWriter, r *http.Request) {
     if r.Method != http.MethodGet {
         http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
         return
     }
-    
+
     w.Header().Set("Content-Type", "application/json")
 
-    workDir := "/opt/render/project/go/src/github.com/kpodosky/Prydict"
-    scriptPath := filepath.Join(workDir, "report_bitcoin.py")
-
-    // Log current state
-    log.Printf("Working directory: %s", workDir)
-    log.Printf("Script path: %s", scriptPath)
-
-    // Check if script exists
-    if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
-        log.Printf("Script not found at: %s", scriptPath)
-        // Try alternative path without underscore
-        scriptPath = filepath.Join(workDir, "report bitcoin.py")
-        if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
-            log.Printf("Script also not found at alternative path: %s", scriptPath)
-            http.Error(w, "Script not found", http.StatusInternalServerError)
-            return
-        }
-    }
-
-    // Execute Python script directly
-    cmd := exec.Command("python3", scriptPath)
-    cmd.Dir = workDir
-
-    // Capture both stdout and stderr
-    output, err := cmd.CombinedOutput()
-    if err != nil {
-        log.Printf("Error running Python script: %v", err)
-        log.Printf("Script output: %s", string(output))
-        http.Error(w, "Failed to get whale transactions", http.StatusInternalServerError)
-        return
-    }
-
-    // Log successful output
-    log.Printf("Script executed successfully")
+    // Generate whale transaction output using whale.go directly
+    output := whale.GenerateWhaleTransaction()
 
     response := map[string]string{
-        "output": string(output),
+        "output": output,
     }
 
     if err := json.NewEncoder(w).Encode(response); err != nil {
@@ -189,19 +155,8 @@ func handleWhaleWatchStart(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Use correct Render path
-    scriptPath := "/opt/render/project/go/src/github.com/kpodosky/Prydict/report_bitcoin.py"
-    cmd := exec.Command("python3", scriptPath,
-        "--min-btc", fmt.Sprintf("%.2f", request.MinAmount),
-        "--types", strings.Join(request.TxTypes, ","))
-    cmd.Dir = "/opt/render/project/go/src/github.com/kpodosky/Prydict"
-
-    if err := cmd.Start(); err != nil {
-        log.Printf("Error starting Python script: %v", err)
-        log.Printf("Working directory: %s", cmd.Dir)
-        http.Error(w, "Failed to start whale tracking", http.StatusInternalServerError)
-        return
-    }
+    // Set minimum amount for whale transactions
+    whale.SetMinAmount(request.MinAmount)
 
     w.WriteHeader(http.StatusOK)
 }
@@ -211,14 +166,9 @@ func handleWhaleWatchStop(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
         return
     }
-    
-    // Gracefully stop the Python script
-    cmd := exec.Command("pkill", "-f", "report bitcoin.py")
-    if err := cmd.Run(); err != nil {
-        log.Printf("Error stopping Python script: %v", err)
-        http.Error(w, "Failed to stop whale tracking", http.StatusInternalServerError)
-        return
-    }
-    
+
+    // Reset whale watch settings
+    whale.ResetSettings()
+
     w.WriteHeader(http.StatusOK)
 }
