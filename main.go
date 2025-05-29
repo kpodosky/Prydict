@@ -9,7 +9,7 @@ import (
     "os"
     "strings"
 
-    "./whale"
+    "github.com/kpodosky/prydict/whale"
 )
 
 func main() {
